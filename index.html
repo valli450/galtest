@@ -206,21 +206,25 @@ window.addEventListener('wheel',(e)=>{
   lock=true;nextPaint();
 },{passive:true});
 
-// Touch & click support for mobile
-document.getElementById('screen').onclick=()=>{
+// Touch & click — навешиваем прямо на body с pointer
+document.body.style.cursor='pointer';
+document.body.ontouchstart=(e)=>{
   if(lock)return;
-  lock=true;setTimeout(nextPaint,100);
+  if(!document.getElementById('screen').classList.contains('on'))return;
+  lock=true;setTimeout(nextPaint,50);
 };
-document.getElementById('intro').onclick=()=>{
+document.body.onclick=(e)=>{
+  if(lock)return;
+  if(!document.getElementById('screen').classList.contains('on'))return;
+  lock=true;setTimeout(nextPaint,50);
+};
+// Intro tap to skip
+document.getElementById('intro').style.cursor='pointer';
+document.getElementById('intro').ontouchstart=(e)=>{
   document.getElementById('intro').classList.add('out');
   document.getElementById('screen').classList.add('on');
   build(0);orbit();
 };
-// Fallback: window click for any missed taps
-window.addEventListener('click',()=>{
-  if(!document.getElementById('screen').classList.contains('on')||lock)return;
-  lock=true;setTimeout(nextPaint,100);
-});
 
 function nextPaint(){
   if(fi<0){show(0);return;}
