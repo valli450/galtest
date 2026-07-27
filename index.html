@@ -14,7 +14,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #intro h1 span{color:#c4966a}
 #intro p{font-size:13px;color:rgba(255,255,255,.3);max-width:400px;line-height:1.8;opacity:0;animation:fi 1s 1.5s forwards}
 @keyframes fi{to{opacity:1}}
-#screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;visibility:hidden;opacity:0;transition:opacity .8s;align-items:center;justify-content:center;cursor:pointer}
+#screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;visibility:hidden;opacity:0;transition:opacity .8s;align-items:center;justify-content:center}
 #screen.on{visibility:visible;opacity:1}
 #ctr{text-align:center;position:relative;z-index:3;transition:opacity .6s,transform .6s;pointer-events:none}
 #ctr.out{opacity:0;transform:scale(.9)}
@@ -22,21 +22,24 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #ctr h2{font-size:26px;font-weight:300;margin-bottom:6px}
 #ctr .pd{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:2px;margin-bottom:14px}
 #ctr .d{font-size:12px;line-height:1.8;color:rgba(255,255,255,.25);max-width:340px;margin:0 auto}
-.ob{position:absolute;border-radius:3px;overflow:hidden;pointer-events:auto;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.4);transition:filter .8s}
+.ob{position:absolute;border-radius:3px;overflow:hidden;pointer-events:none;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.4);transition:filter .8s,opacity .8s}
 .ob img{width:100%;height:100%;object-fit:cover;display:block}
-.ob.done{filter:brightness(.5) saturate(.5)!important}
-.ob.h{visibility:hidden}
+.ob.v{visibility:hidden}
+.ob.done{filter:brightness(.6) saturate(.6)!important;pointer-events:auto!important}
 .fly{position:fixed;z-index:10;pointer-events:none;border-radius:3px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.6);will-change:left,top,width,height,filter}
 .fly img{width:100%;height:100%;object-fit:cover;display:block}
 #h{position:fixed;top:20px;left:32px;right:32px;z-index:20;display:flex;justify-content:space-between;align-items:center;pointer-events:none;mix-blend-mode:difference}
 #h>*{pointer-events:auto}#h .b{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#fff;opacity:.4}
 #h .b span{color:#c4966a}#h .c{font-size:9px;color:rgba(255,255,255,.12);letter-spacing:2px}
-#next{position:fixed;z-index:99999;bottom:100px;right:16px;display:none;border:none;background:rgba(196,149,106,.15);color:rgba(196,149,106,.9);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:10px 16px;border-radius:4px;cursor:pointer;pointer-events:auto;border:1px solid rgba(196,149,106,.3)}
+#nb{position:fixed;z-index:99999;bottom:120px;right:16px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(196,149,106,.5);background:rgba(196,149,106,.15);color:rgba(196,149,106,.9);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:1}
+#next{position:fixed;z-index:99998;top:80px;right:24px;display:none;border:none;background:transparent;color:rgba(196,149,106,.6);font-size:9px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;pointer-events:auto;padding:6px 12px;transition:color .3s;font-family:Georgia,serif}
+#next:hover{color:rgba(196,149,106,1)}
 @media(max-width:767px){
   #h{padding:12px 16px}#h .b{font-size:8px}
   .fly{max-width:92vw!important;max-height:35vh!important;border-radius:2px}
   #ctr h2{font-size:18px}#ctr .d{font-size:10px}
   #hc{font-size:8px}
+  #next{top:auto;bottom:60px;right:16px;font-size:8px}
 }
 </style>
 </head>
@@ -45,9 +48,8 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 <div id="h"><div class="b">Быть <span>Ван Гогом</span></div><div class="c" id="hc">I / VI</div></div>
 <div id="intro"><img src="van-gogh-images/2-self-portrait.jpg"><h1>Быть <span>Ван Гогом</span></h1><p>Тысячи писем брату Тео.</p></div>
 <div id="screen"><div id="ctr"><div class="l" id="cl"></div><h2 id="cn"></h2><div class="pd" id="cpd"></div><div class="d" id="cd"></div></div></div>
-<div id="tx" style="display:none"></div>
 <div class="fly" id="f1"></div><div class="fly" id="f2"></div>
-<button id="nb" onclick="nbClick()" style="position:fixed;z-index:99999;bottom:120px;right:16px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(196,149,106,.5);background:rgba(196,149,106,.15);color:rgba(196,149,106,.9);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:1">→</button>
+<button id="nb" onclick="nbClick()">→</button>
 <button id="next" onclick="nextStage()">Следующий этап →</button>
 
 <script>
@@ -68,25 +70,31 @@ const D=[
   {i:'6-starry-night.jpg',n:'Натюрморт',w:75,h:60,l:'Пишу что вижу.'}]}
 ];
 
-let curH=0,obs=[],ang=0,spin=true,lock=false,fi=-1,hi=-1,guided=true,seq=0;
+let curH=0,obs=[],ang=0,spin=true,lock=false,fi=-1,hi=-1,guided=true,seq=0,doneAll=false;
 const f1=document.getElementById('f1'),f2=document.getElementById('f2');
 const ctr=document.getElementById('ctr'),nb=document.getElementById('nb'),nx=document.getElementById('next');
-
 function nbClick(){
   if(lock||!document.getElementById('screen').classList.contains('on'))return;
   lock=true;
-  if(guided&&fi>=0){nextPaint();return;}
   if(guided&&fi<0){show(0);seq=0;return;}
-  // Free mode: tap closes current painting
-  if(fi>=0){hide(fi);return;}
+  if(guided&&fi>=0){nextPaint();return;}
+  if(!guided&&fi>=0){hide(fi);return;}
 }
 function nextStage(){
-  nx.style.display='none';
-  guided=false;curH=(curH+1)%D.length;
-  document.getElementById('hc').textContent=`${['I','II','III','IV','V','VI'][curH]} / VI`;
-  build(curH);
+  guided=false;doneAll=false;nx.style.display='none';
+  const newH=(curH+1)%D.length;
+  // Fly old paintings up + fade out ctr
+  ctr.classList.add('out');
+  obs.forEach((el,i)=>{
+    const r=el.getBoundingClientRect();
+    el.style.transition='all .8s ease-in';el.style.opacity='0';
+    el.style.transform=`translateY(-${innerHeight*1.2}px)`;
+  });
+  setTimeout(()=>{
+    document.getElementById('hc').textContent=`${['I','II','III','IV','V','VI'][newH]} / VI`;
+    curH=newH;build(curH);orbit();
+  },900);
 }
-
 function build(h){
   document.getElementById('cl').textContent=D[h].nm;
   document.getElementById('cn').textContent=D[h].nm;
@@ -99,16 +107,21 @@ function build(h){
   const cx=innerWidth/2,cy=innerHeight/2,R=Math.min(innerWidth,innerHeight)*.32;
   D[h].P.forEach((p,i)=>{
     const a=(i/D[h].P.length)*Math.PI*2-Math.PI/2;
-    const el=document.createElement('div');el.className='ob'+(guided?'':' done');
-    el.style.cssText=`left:${cx+R*Math.cos(a)-p.w/2}px;top:${cy+R*Math.sin(a)-p.h/2}px;width:${p.w}px;height:${p.h}px;`;
+    const el=document.createElement('div');el.className='ob';
+    el.style.cssText=`left:${cx+R*Math.cos(a)-p.w/2}px;top:${innerHeight*1.2+cy+R*Math.sin(a)-p.h/2}px;width:${p.w}px;height:${p.h}px;opacity:0;`;
     el.innerHTML=`<img src="van-gogh-images/${p.i}">`;
     el.onclick=()=>{
-      if(!guided&&!lock&&fi!==i){lock=true;if(fi>=0)hide(fi);setTimeout(()=>show(i),fi>=0?400:0);}
+      if(!guided&&!doneAll&&!lock&&fi!==i){lock=true;if(fi>=0)hide(fi);setTimeout(()=>show(i),fi>=0?400:0);}
     };
     document.getElementById('screen').appendChild(el);obs.push(el);
+    // Animate rising from below
+    setTimeout(()=>{
+      el.style.transition='all .8s cubic-bezier(.22,1,.36,1)';
+      el.style.top=(cy+R*Math.sin(a)-p.h/2)+'px';
+      el.style.opacity='1';
+    },100+i*100);
   });
 }
-
 function orbit(){
   if(!spin){requestAnimationFrame(orbit);return;}
   ang+=.0015;
@@ -121,34 +134,28 @@ function orbit(){
   });
   requestAnimationFrame(orbit);
 }
-
 function show(pi){
   fi=pi;lock=true;
   const p=D[curH].P[pi];
-  // Get orbit position
   const r=obs[pi].getBoundingClientRect();
-  // Hide in orbit
   const fb=(f1.style.display==='block'?f2:f1);
   fb.style.zIndex='11';
   fb.style.display='block';fb.style.transition='none';
+  fb.style.filter='brightness(.35) saturate(.25)';
   fb.innerHTML=`<img src="van-gogh-images/${p.i}">`;
   fb.style.left=r.left+'px';fb.style.top=r.top+'px';
   fb.style.width=r.width+'px';fb.style.height=r.height+'px';
-  fb.style.filter='brightness(.35) saturate(.25)';
   fb.getBoundingClientRect();
-  // Calculate center position
   const isMobile=innerWidth<768||'ontouchstart'in window;
   const tw=Math.min(600,innerWidth*.75);
   const mh=innerHeight*.85,ih=Math.min(tw*(p.h/p.w),mh),fw=ih*(p.w/p.h);
   let tl2=(innerWidth-fw)/2,tt2=(innerHeight-ih)/2-20;
   if(isMobile)tt2=innerHeight*0.22;
-  // Fly with transition (brightness + position)
   fb.style.transition='left 3s ease-out,top 3s ease-out,width 3s ease-out,height 3s ease-out,filter 3s ease-out';
   fb.style.left=tl2+'px';fb.style.top=tt2+'px';
   fb.style.width=fw+'px';fb.style.height=ih+'px';
-  fb.style.filter='none'; // brighten during flight
+  fb.style.filter='none';
   ctr.classList.add('out');
-  // Create panels
   const lp=document.createElement('div'),rp=document.createElement('div');
   lp.className='pp';rp.className='pp';
   const gap=8;
@@ -164,26 +171,21 @@ function show(pi){
     rp.innerHTML=`<div style="height:22px"></div><div style="font-size:18px;color:rgba(255,255,255,.9)">${p.n}</div><div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:2px;margin:2px 0 18px">${p.y} · ${D[curH].nm}</div><div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.75);margin-bottom:18px">${p.d||''}</div><div style="font-size:12px;line-height:1.9;color:rgba(255,255,255,.6)"><span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Информация</span>${p.tech||''}${p.loc?'<span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Где находится</span>'+p.loc:''}</div>`;
   }
   document.body.appendChild(lp);document.body.appendChild(rp);
-  // Show panels after fly animation
   setTimeout(()=>{lp.style.opacity='1';rp.style.opacity='1';},2800);
-  // Hide button during viewing
   nb.style.display='none';
   setTimeout(()=>{lock=false;},8000);
 }
-
 function hide(pi){
   if(pi<0)return;
   hi=pi;
-  // Remove panels FIRST
   document.querySelectorAll('.pp').forEach(el=>el.remove());
-  // Mark painting as seen
-  if(guided&&pi>=0)obs[pi].classList.add('done');
+  // Mark seen only during guided tour
+  if(guided)obs[pi].classList.add('done');
   const fa=(f1.style.display==='block'?f1:f2);
   fa.style.zIndex='9';
   fa.style.transition='none';fa.style.filter='none';
   const sr=fa.getBoundingClientRect();
   const tr=obs[pi].getBoundingClientRect();
-  // Animate: darken + fly back
   fa.style.transition='left 2.5s ease-out,top 2.5s ease-out,width 2.5s ease-out,height 2.5s ease-out,filter 2.5s ease-out';
   fa.style.left=tr.left+'px';fa.style.top=tr.top+'px';
   fa.style.width=tr.width+'px';fa.style.height=tr.height+'px';
@@ -194,19 +196,18 @@ function hide(pi){
   },2600);
   nb.style.display='flex';
 }
-
 function nextPaint(){
-  if(!guided){hide(fi);return;}
   if(fi<0){show(0);seq=0;return;}
   const ni=seq+1;
   if(ni<D[curH].P.length){
     hide(fi);show(ni);seq=ni;
   }else{
-    // All 6 viewed — show "next stage" button
     hide(fi);
-    seq=0;
-    nx.style.display='block';
+    // All 6 done — brighten all, show next stage
+    seq=0;guided=false;doneAll=true;
+    obs.forEach(el=>el.classList.add('done'));
     nb.style.display='none';
+    nx.style.display='block';
   }
 }
 
@@ -222,7 +223,7 @@ window.addEventListener('touchend',e=>{
   lock=true;setTimeout(nextPaint,50);
 },{passive:true});
 
-// START
+// PARTICLES
 const c=document.getElementById('bg'),ctx=c.getContext('2d');
 let w,h;function rs(){w=c.width=innerWidth;h=c.height=innerHeight}
 rs();addEventListener('resize',rs);
