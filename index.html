@@ -35,7 +35,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #h{position:fixed;top:20px;left:32px;right:32px;z-index:20;display:flex;justify-content:space-between;align-items:center;pointer-events:none;mix-blend-mode:difference}
 #h>*{pointer-events:auto}#h .b{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#fff;opacity:.4}
 #h .b span{color:#c4966a}#h .c{font-size:9px;color:rgba(255,255,255,.12);letter-spacing:2px}
-@media(max-width:768px){
+@media(max-width:767px){
   #h{padding:12px 16px}#h .b{font-size:8px}
   .fly{max-width:92vw!important;max-height:35vh!important;border-radius:2px}
   #ctr h2{font-size:18px}#ctr .d{font-size:10px}
@@ -166,8 +166,8 @@ function show(pi){
     rp.innerHTML=`<div style="height:22px"></div><div style="font-size:18px;color:rgba(255,255,255,.9)">${p.n}</div><div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:2px;margin:2px 0 18px">${p.y} · ${D[curH].nm}</div><div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.75);margin-bottom:18px">${p.d||''}</div><div style="font-size:12px;line-height:1.9;color:rgba(255,255,255,.6)"><span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Информация</span>${p.tech||''}${p.loc?'<span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Где находится</span>'+p.loc:''}</div>`;
   }
   document.body.appendChild(lp);document.body.appendChild(rp);
-  // Mobile: кнопка далее
-  if(isMobile){
+  // Desktop: кнопка тоже добавим для навигации
+  (function(){
     const nb=document.createElement('div');
     nb.id='nb';nb.className='pp';
     nb.style.cssText='position:fixed;z-index:9;bottom:80px;right:12px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:0;transition:opacity .6s';
@@ -175,7 +175,7 @@ function show(pi){
     nb.onclick=(e)=>{e.stopPropagation();if(!lock){lock=true;nextPaint();}};
     document.body.appendChild(nb);
     setTimeout(()=>nb.style.opacity='1',2800);
-  }
+  })();
   setTimeout(()=>{lp.style.opacity='1';rp.style.opacity='1';},2800);
   setTimeout(()=>{lock=false;},8000);
 }
