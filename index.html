@@ -263,7 +263,7 @@ setTimeout(()=>{
   // Create nav button immediately
   const nb=document.createElement('div');
   nb.id='nb';
-  nb.style.cssText='position:fixed;z-index:20;bottom:80px;right:12px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:1';
+  nb.style.cssText='position:fixed;z-index:999;bottom:120px;right:16px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(196,149,106,.4);background:rgba(196,149,106,.12);color:rgba(196,149,106,.8);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,.3)';
   nb.textContent='→';
   nb.onclick=(e)=>{e.stopPropagation();if(!lock){lock=true;nextPaint();}};
   document.body.appendChild(nb);
