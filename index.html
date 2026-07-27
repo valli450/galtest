@@ -126,7 +126,7 @@ function show(pi){
   fb.style.left=r.left+'px';fb.style.top=r.top+'px';
   fb.style.width=r.width+'px';fb.style.height=r.height+'px';
   fb.getBoundingClientRect(); // force layout
-  const isMobile=innerWidth<768;
+  const isMobile=innerWidth<768||'ontouchstart'in window;
   const tw=Math.min(600,innerWidth*.75);
   const mh=innerHeight*.85,ih=Math.min(tw*(p.h/p.w),mh),fw=ih*(p.w/p.h);
   let tl2=(innerWidth-fw)/2,tt2=(innerHeight-ih)/2-20;
