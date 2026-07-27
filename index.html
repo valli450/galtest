@@ -23,7 +23,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #ctr h2{font-size:26px;font-weight:300;margin-bottom:6px}
 #ctr .pd{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:2px;margin-bottom:14px}
 #ctr .d{font-size:12px;line-height:1.8;color:rgba(255,255,255,.25);max-width:340px;margin:0 auto}
-.ob{position:absolute;border-radius:3px;overflow:hidden;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.4);filter:brightness(.35) saturate(.25)}
+.ob{position:absolute;border-radius:3px;overflow:hidden;pointer-events:auto;box-shadow:0 8px 30px rgba(0,0,0,.4);filter:brightness(.35) saturate(.25);cursor:pointer}
 .ob img{width:100%;height:100%;object-fit:cover;display:block}
 .fly{position:fixed;z-index:10;pointer-events:none;border-radius:3px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.6);filter:brightness(.35)saturate(.25);will-change:left,top,width,height,filter}
 .fly img{width:100%;height:100%;object-fit:cover;display:block}
@@ -50,7 +50,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 <div id="screen"><div id="ctr"><div class="l" id="cl"></div><h2 id="cn"></h2><div class="pd" id="cpd"></div><div class="d" id="cd"></div></div><div class="tap-hint" id="th">⟳ тапни ⟳</div></div>
 <div id="tx"><div class="a">✉ Письмо к Тео</div><div class="t" id="ft"></div><div class="s" id="fm"></div></div>
 <div class="fly" id="f1"></div><div class="fly" id="f2"></div>
-<button id="nb" onclick="nbClick()" style="position:fixed;z-index:99999;bottom:120px;right:16px;width:44px;height:44px;border-radius:50%;border:3px solid red;background:rgba(255,0,0,.5);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:1">→</button>
+<button id="nb" onclick="nbClick()" style="position:fixed;z-index:99999;bottom:120px;right:16px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(196,149,106,.5);background:rgba(196,149,106,.15);color:rgba(196,149,106,.9);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:1">→</button>
 
 <script>
 const D=[
@@ -95,6 +95,7 @@ function build(h){
     const el=document.createElement('div');el.className='ob';
     el.style.cssText=`left:${cx+R*Math.cos(a)-p.w/2}px;top:${cy+R*Math.sin(a)-p.h/2}px;width:${p.w}px;height:${p.h}px;`;
     el.innerHTML=`<img src="van-gogh-images/${p.i}">`;
+    el.onclick=()=>{if(!lock&&fi!==i){lock=true;if(fi>=0)hide(fi);setTimeout(()=>show(i),fi>=0?300:0);}};
     document.getElementById('screen').appendChild(el);obs.push(el);
   });
 }
