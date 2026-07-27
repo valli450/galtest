@@ -166,6 +166,16 @@ function show(pi){
     rp.innerHTML=`<div style="height:22px"></div><div style="font-size:18px;color:rgba(255,255,255,.9)">${p.n}</div><div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:2px;margin:2px 0 18px">${p.y} · ${D[curH].nm}</div><div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.75);margin-bottom:18px">${p.d||''}</div><div style="font-size:12px;line-height:1.9;color:rgba(255,255,255,.6)"><span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Информация</span>${p.tech||''}${p.loc?'<span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Где находится</span>'+p.loc:''}</div>`;
   }
   document.body.appendChild(lp);document.body.appendChild(rp);
+  // Mobile: кнопка далее
+  if(isMobile){
+    const nb=document.createElement('div');
+    nb.id='nb';nb.className='pp';
+    nb.style.cssText='position:fixed;z-index:9;bottom:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:0;transition:opacity .6s';
+    nb.textContent='→';
+    nb.onclick=(e)=>{e.stopPropagation();if(!lock){lock=true;nextPaint();}};
+    document.body.appendChild(nb);
+    setTimeout(()=>nb.style.opacity='1',2800);
+  }
   setTimeout(()=>{lp.style.opacity='1';rp.style.opacity='1';},2800);
   setTimeout(()=>{lock=false;},8000);
 }
