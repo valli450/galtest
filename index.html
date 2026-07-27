@@ -5,7 +5,7 @@
 <title>Быть Ван Гогом</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:100vw;overflow:hidden;user-select:none}
+body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:100vw;overflow:hidden;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 #bg{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
 #intro{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:100;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px;background:#0a0806;transition:opacity 1.5s}
 #intro.out{opacity:0;pointer-events:none}
@@ -14,7 +14,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #intro h1 span{color:#c4966a}
 #intro p{font-size:13px;color:rgba(255,255,255,.3);max-width:400px;line-height:1.8;opacity:0;animation:fi 1s 1.5s forwards}
 @keyframes fi{to{opacity:1}}
-#screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;display:none;align-items:center;justify-content:center}
+#screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;display:none;align-items:center;justify-content:center;cursor:pointer}
 #screen.on{display:flex}
 #ctr{text-align:center;position:relative;z-index:3;transition:opacity .6s,transform .6s}
 #ctr.out{opacity:0;transform:scale(.9);pointer-events:none}
@@ -206,15 +206,18 @@ window.addEventListener('wheel',(e)=>{
 },{passive:true});
 
 // Touch & click support for mobile
-window.addEventListener('touchend',e=>{
-  if(!document.getElementById('screen').classList.contains('on')||lock)return;
-  if(e.changedTouches.length!==1)return;
+document.getElementById('screen').onclick=()=>{
+  if(lock)return;
   lock=true;setTimeout(nextPaint,100);
-},{passive:true});
-window.addEventListener('click',e=>{
+};
+document.getElementById('intro').onclick=()=>{
+  document.getElementById('intro').classList.add('out');
+  document.getElementById('screen').classList.add('on');
+  build(0);orbit();
+};
+// Fallback: window click for any missed taps
+window.addEventListener('click',()=>{
   if(!document.getElementById('screen').classList.contains('on')||lock)return;
-  // Ignore clicks on fly elements (painting animation)
-  if(e.target.closest('.fly,.pp,.ov'))return;
   lock=true;setTimeout(nextPaint,100);
 });
 
