@@ -205,14 +205,18 @@ window.addEventListener('wheel',(e)=>{
   lock=true;nextPaint();
 },{passive:true});
 
-// Touch support for mobile — simple tap anywhere to advance
+// Touch & click support for mobile
 window.addEventListener('touchend',e=>{
   if(!document.getElementById('screen').classList.contains('on')||lock)return;
-  // Only on single finger tap
   if(e.changedTouches.length!==1)return;
-  // Wait a moment so tap doesn't interfere with overlay
-  lock=true;nextPaint();
+  lock=true;setTimeout(nextPaint,100);
 },{passive:true});
+window.addEventListener('click',e=>{
+  if(!document.getElementById('screen').classList.contains('on')||lock)return;
+  // Ignore clicks on fly elements (painting animation)
+  if(e.target.closest('.fly,.pp,.ov'))return;
+  lock=true;setTimeout(nextPaint,100);
+});
 
 function nextPaint(){
   if(fi<0){show(0);return;}
