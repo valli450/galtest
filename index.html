@@ -205,14 +205,13 @@ window.addEventListener('wheel',(e)=>{
   lock=true;nextPaint();
 },{passive:true});
 
-// Touch support for mobile
-let touchY=0;
-window.addEventListener('touchstart',e=>{touchY=e.touches[0].clientY;},{passive:true});
-window.addEventListener('touchmove',e=>{
-  if(!document.getElementById('screen').classList.contains('on')||lock||touchY===0)return;
-  const dy=touchY-e.touches[0].clientY;
-  if(dy<30)return; // minimum swipe down
-  touchY=0;lock=true;nextPaint();
+// Touch support for mobile — simple tap anywhere to advance
+window.addEventListener('touchend',e=>{
+  if(!document.getElementById('screen').classList.contains('on')||lock)return;
+  // Only on single finger tap
+  if(e.changedTouches.length!==1)return;
+  // Wait a moment so tap doesn't interfere with overlay
+  lock=true;nextPaint();
 },{passive:true});
 
 function nextPaint(){
