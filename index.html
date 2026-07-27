@@ -218,13 +218,21 @@ document.body.onclick=(e)=>{
   if(!document.getElementById('screen').classList.contains('on'))return;
   lock=true;setTimeout(nextPaint,50);
 };
-// Intro tap to skip
+// Intro tap to skip + auto-start
 document.getElementById('intro').style.cursor='pointer';
 document.getElementById('intro').ontouchstart=(e)=>{
   document.getElementById('intro').classList.add('out');
   document.getElementById('screen').classList.add('on');
   build(0);orbit();
 };
+// Auto-start after 5s if no tap
+setTimeout(()=>{
+  if(!document.getElementById('screen').classList.contains('on')){
+    document.getElementById('intro').classList.add('out');
+    document.getElementById('screen').classList.add('on');
+    build(0);orbit();
+  }
+},5000);
 
 function nextPaint(){
   if(fi<0){show(0);return;}
