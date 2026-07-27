@@ -14,8 +14,9 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #intro h1 span{color:#c4966a}
 #intro p{font-size:13px;color:rgba(255,255,255,.3);max-width:400px;line-height:1.8;opacity:0;animation:fi 1s 1.5s forwards}
 @keyframes fi{to{opacity:1}}
-#screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;display:none;align-items:center;justify-content:center;cursor:pointer}
-#screen.on{display:flex}
+#screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;visibility:hidden;opacity:0;transition:opacity .8s;align-items:center;justify-content:center;cursor:pointer}
+#screen.on{visibility:visible;opacity:1}
+#screen .tap-hint{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(255,255,255,.08);letter-spacing:2px;pointer-events:none;transition:opacity .5s}
 #ctr{text-align:center;position:relative;z-index:3;transition:opacity .6s,transform .6s}
 #ctr.out{opacity:0;transform:scale(.9);pointer-events:none}
 #ctr .l{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#c4966a;margin-bottom:8px;opacity:.5}
@@ -46,7 +47,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 <canvas id="bg"></canvas>
 <div id="h"><div class="b">Быть <span>Ван Гогом</span></div><div class="c" id="hc">I / VI</div></div>
 <div id="intro"><img src="van-gogh-images/2-self-portrait.jpg"><h1>Быть <span>Ван Гогом</span></h1><p>Тысячи писем брату Тео.</p></div>
-<div id="screen"><div id="ctr"><div class="l" id="cl"></div><h2 id="cn"></h2><div class="pd" id="cpd"></div><div class="d" id="cd"></div></div></div>
+<div id="screen"><div id="ctr"><div class="l" id="cl"></div><h2 id="cn"></h2><div class="pd" id="cpd"></div><div class="d" id="cd"></div></div><div class="tap-hint" id="th">⟳ тапни ⟳</div></div>
 <div id="tx"><div class="a">✉ Письмо к Тео</div><div class="t" id="ft"></div><div class="s" id="fm"></div></div>
 <div class="fly" id="f1"></div><div class="fly" id="f2"></div>
 
