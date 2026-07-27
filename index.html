@@ -170,7 +170,7 @@ function show(pi){
   if(isMobile){
     const nb=document.createElement('div');
     nb.id='nb';nb.className='pp';
-    nb.style.cssText='position:fixed;z-index:9;bottom:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:0;transition:opacity .6s';
+    nb.style.cssText='position:fixed;z-index:9;bottom:80px;right:12px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:0;transition:opacity .6s';
     nb.textContent='→';
     nb.onclick=(e)=>{e.stopPropagation();if(!lock){lock=true;nextPaint();}};
     document.body.appendChild(nb);
