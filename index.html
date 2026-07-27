@@ -35,6 +35,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #h{position:fixed;top:20px;left:32px;right:32px;z-index:20;display:flex;justify-content:space-between;align-items:center;pointer-events:none;mix-blend-mode:difference}
 #h>*{pointer-events:auto}#h .b{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#fff;opacity:.4}
 #h .b span{color:#c4966a}#h .c{font-size:9px;color:rgba(255,255,255,.12);letter-spacing:2px}
+#nb{position:fixed;z-index:999;bottom:120px;right:16px;width:36px;height:36px;border-radius:50%;border:2px solid red;background:rgba(255,0,0,.3);color:red;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:1}
 @media(max-width:767px){
   #h{padding:12px 16px}#h .b{font-size:8px}
   .fly{max-width:92vw!important;max-height:35vh!important;border-radius:2px}
@@ -50,6 +51,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 <div id="screen"><div id="ctr"><div class="l" id="cl"></div><h2 id="cn"></h2><div class="pd" id="cpd"></div><div class="d" id="cd"></div></div><div class="tap-hint" id="th">⟳ тапни ⟳</div></div>
 <div id="tx"><div class="a">✉ Письмо к Тео</div><div class="t" id="ft"></div><div class="s" id="fm"></div></div>
 <div class="fly" id="f1"></div><div class="fly" id="f2"></div>
+<div id="nb">→</div>
 
 <script>
 const D=[
@@ -72,6 +74,11 @@ const D=[
 let curH=0,obs=[],ang=0,spin=true,lock=false,fi=-1,hi=-1;
 const f1=document.getElementById('f1'),f2=document.getElementById('f2');
 const tx=document.getElementById('tx'),ctr=document.getElementById('ctr');
+// Wire nav button
+document.getElementById('nb').onclick=(e)=>{
+  e.stopPropagation();
+  if(!lock&&document.getElementById('screen').classList.contains('on')){lock=true;nextPaint();}
+};
 
 function build(h){
   document.getElementById('cl').textContent=D[h].nm;
@@ -256,18 +263,7 @@ let w,h;function rs(){w=c.width=innerWidth;h=c.height=innerHeight}
 rs();addEventListener('resize',rs);
 let pt=[];for(let i=0;i<60;i++)pt.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.1,vy:-(Math.random()*.05+.01),o:Math.random()*.2+.03,p:Math.random()*6.28});
 function dr(){ctx.clearRect(0,0,w,h);pt.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.p+=.005;const a=p.o*(.5+.5*Math.sin(p.p));ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.28);ctx.fillStyle=`rgba(255,230,210,${a})`;ctx.fill();if(p.y<-10||p.x<-10||p.x>w+10){p.y=Math.random()*h;p.x=Math.random()*w}});requestAnimationFrame(dr)}dr();
-setTimeout(()=>{
-  document.getElementById('intro').classList.add('out');
-  document.getElementById('screen').classList.add('on');
-  build(0);orbit();
-  // Create nav button immediately
-  const nb=document.createElement('div');
-  nb.id='nb';
-  nb.style.cssText='position:fixed;z-index:999;bottom:120px;right:16px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(196,149,106,.4);background:rgba(196,149,106,.12);color:rgba(196,149,106,.8);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:1;box-shadow:0 2px 8px rgba(0,0,0,.3)';
-  nb.textContent='→';
-  nb.onclick=(e)=>{e.stopPropagation();if(!lock){lock=true;nextPaint();}};
-  document.body.appendChild(nb);
-},3500);
+setTimeout(()=>{document.getElementById('intro').classList.add('out');document.getElementById('screen').classList.add('on');build(0);orbit();},3500);
 </script>
 </body>
 </html>
