@@ -166,16 +166,9 @@ function show(pi){
     rp.innerHTML=`<div style="height:22px"></div><div style="font-size:18px;color:rgba(255,255,255,.9)">${p.n}</div><div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:2px;margin:2px 0 18px">${p.y} · ${D[curH].nm}</div><div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.75);margin-bottom:18px">${p.d||''}</div><div style="font-size:12px;line-height:1.9;color:rgba(255,255,255,.6)"><span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Информация</span>${p.tech||''}${p.loc?'<span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Где находится</span>'+p.loc:''}</div>`;
   }
   document.body.appendChild(lp);document.body.appendChild(rp);
-  // Desktop: кнопка тоже добавим для навигации
-  (function(){
-    const nb=document.createElement('div');
-    nb.id='nb';nb.className='pp';
-    nb.style.cssText='position:fixed;z-index:9;bottom:80px;right:12px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:0;transition:opacity .6s';
-    nb.textContent='→';
-    nb.onclick=(e)=>{e.stopPropagation();if(!lock){lock=true;nextPaint();}};
-    document.body.appendChild(nb);
-    setTimeout(()=>nb.style.opacity='1',2800);
-  })();
+  // Показываем кнопку
+  const nb=document.getElementById('nb');
+  if(nb){nb.style.display='flex';nb.style.opacity='1';}
   setTimeout(()=>{lp.style.opacity='1';rp.style.opacity='1';},2800);
   setTimeout(()=>{lock=false;},8000);
 }
@@ -263,7 +256,18 @@ let w,h;function rs(){w=c.width=innerWidth;h=c.height=innerHeight}
 rs();addEventListener('resize',rs);
 let pt=[];for(let i=0;i<60;i++)pt.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.1,vy:-(Math.random()*.05+.01),o:Math.random()*.2+.03,p:Math.random()*6.28});
 function dr(){ctx.clearRect(0,0,w,h);pt.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.p+=.005;const a=p.o*(.5+.5*Math.sin(p.p));ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.28);ctx.fillStyle=`rgba(255,230,210,${a})`;ctx.fill();if(p.y<-10||p.x<-10||p.x>w+10){p.y=Math.random()*h;p.x=Math.random()*w}});requestAnimationFrame(dr)}dr();
-setTimeout(()=>{document.getElementById('intro').classList.add('out');document.getElementById('screen').classList.add('on');build(0);orbit();},3500);
+setTimeout(()=>{
+  document.getElementById('intro').classList.add('out');
+  document.getElementById('screen').classList.add('on');
+  build(0);orbit();
+  // Create nav button immediately
+  const nb=document.createElement('div');
+  nb.id='nb';
+  nb.style.cssText='position:fixed;z-index:20;bottom:80px;right:12px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;opacity:1';
+  nb.textContent='→';
+  nb.onclick=(e)=>{e.stopPropagation();if(!lock){lock=true;nextPaint();}};
+  document.body.appendChild(nb);
+},3500);
 </script>
 </body>
 </html>
