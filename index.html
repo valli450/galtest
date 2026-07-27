@@ -16,25 +16,22 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 @keyframes fi{to{opacity:1}}
 #screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;visibility:hidden;opacity:0;transition:opacity .8s;align-items:center;justify-content:center;cursor:pointer}
 #screen.on{visibility:visible;opacity:1}
-#screen .tap-hint{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(255,255,255,.08);letter-spacing:2px;pointer-events:none;transition:opacity .5s}
-#ctr{text-align:center;position:relative;z-index:3;transition:opacity .6s,transform .6s}
-#ctr.out{opacity:0;transform:scale(.9);pointer-events:none}
+#ctr{text-align:center;position:relative;z-index:3;transition:opacity .6s,transform .6s;pointer-events:none}
+#ctr.out{opacity:0;transform:scale(.9)}
 #ctr .l{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#c4966a;margin-bottom:8px;opacity:.5}
 #ctr h2{font-size:26px;font-weight:300;margin-bottom:6px}
 #ctr .pd{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:2px;margin-bottom:14px}
 #ctr .d{font-size:12px;line-height:1.8;color:rgba(255,255,255,.25);max-width:340px;margin:0 auto}
-.ob{position:absolute;border-radius:3px;overflow:hidden;pointer-events:auto;box-shadow:0 8px 30px rgba(0,0,0,.4);filter:brightness(.35) saturate(.25);cursor:pointer}
+.ob{position:absolute;border-radius:3px;overflow:hidden;pointer-events:auto;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.4);transition:filter .8s}
 .ob img{width:100%;height:100%;object-fit:cover;display:block}
-.fly{position:fixed;z-index:10;pointer-events:none;border-radius:3px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.6);filter:brightness(.35)saturate(.25);will-change:left,top,width,height,filter}
+.ob.done{filter:brightness(.5) saturate(.5)!important}
+.ob.h{visibility:hidden}
+.fly{position:fixed;z-index:10;pointer-events:none;border-radius:3px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.6);will-change:left,top,width,height,filter}
 .fly img{width:100%;height:100%;object-fit:cover;display:block}
-#tx{position:fixed;z-index:6;pointer-events:none;opacity:0;transition:opacity .5s .2s}
-#tx.s{opacity:1}
-#tx .a{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#c4966a;margin-bottom:12px;opacity:.5}
-#tx .t{font-size:14px;line-height:1.9;color:rgba(255,255,255,.45);font-weight:300;margin-bottom:12px}
-#tx .s{font-size:10px;color:rgba(255,255,255,.12)}
 #h{position:fixed;top:20px;left:32px;right:32px;z-index:20;display:flex;justify-content:space-between;align-items:center;pointer-events:none;mix-blend-mode:difference}
 #h>*{pointer-events:auto}#h .b{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#fff;opacity:.4}
 #h .b span{color:#c4966a}#h .c{font-size:9px;color:rgba(255,255,255,.12);letter-spacing:2px}
+#next{position:fixed;z-index:99999;bottom:100px;right:16px;display:none;border:none;background:rgba(196,149,106,.15);color:rgba(196,149,106,.9);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:10px 16px;border-radius:4px;cursor:pointer;pointer-events:auto;border:1px solid rgba(196,149,106,.3)}
 @media(max-width:767px){
   #h{padding:12px 16px}#h .b{font-size:8px}
   .fly{max-width:92vw!important;max-height:35vh!important;border-radius:2px}
@@ -47,10 +44,11 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 <canvas id="bg"></canvas>
 <div id="h"><div class="b">Быть <span>Ван Гогом</span></div><div class="c" id="hc">I / VI</div></div>
 <div id="intro"><img src="van-gogh-images/2-self-portrait.jpg"><h1>Быть <span>Ван Гогом</span></h1><p>Тысячи писем брату Тео.</p></div>
-<div id="screen"><div id="ctr"><div class="l" id="cl"></div><h2 id="cn"></h2><div class="pd" id="cpd"></div><div class="d" id="cd"></div></div><div class="tap-hint" id="th">⟳ тапни ⟳</div></div>
-<div id="tx"><div class="a">✉ Письмо к Тео</div><div class="t" id="ft"></div><div class="s" id="fm"></div></div>
+<div id="screen"><div id="ctr"><div class="l" id="cl"></div><h2 id="cn"></h2><div class="pd" id="cpd"></div><div class="d" id="cd"></div></div></div>
+<div id="tx" style="display:none"></div>
 <div class="fly" id="f1"></div><div class="fly" id="f2"></div>
 <button id="nb" onclick="nbClick()" style="position:fixed;z-index:99999;bottom:120px;right:16px;width:44px;height:44px;border-radius:50%;border:1px solid rgba(196,149,106,.5);background:rgba(196,149,106,.15);color:rgba(196,149,106,.9);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:1">→</button>
+<button id="next" onclick="nextStage()">Следующий этап →</button>
 
 <script>
 const D=[
@@ -70,14 +68,23 @@ const D=[
   {i:'6-starry-night.jpg',n:'Натюрморт',w:75,h:60,l:'Пишу что вижу.'}]}
 ];
 
-let curH=0,obs=[],ang=0,spin=true,lock=false,fi=-1,hi=-1;
+let curH=0,obs=[],ang=0,spin=true,lock=false,fi=-1,hi=-1,guided=true,seq=0;
 const f1=document.getElementById('f1'),f2=document.getElementById('f2');
-const tx=document.getElementById('tx'),ctr=document.getElementById('ctr');
-// Global click handler for nav button
+const ctr=document.getElementById('ctr'),nb=document.getElementById('nb'),nx=document.getElementById('next');
+
 function nbClick(){
-  if(!lock&&document.getElementById('screen').classList.contains('on')){
-    lock=true;setTimeout(nextPaint,50);
-  }
+  if(lock||!document.getElementById('screen').classList.contains('on'))return;
+  lock=true;
+  if(guided&&fi>=0){nextPaint();return;}
+  if(guided&&fi<0){show(0);seq=0;return;}
+  // Free mode: tap closes current painting
+  if(fi>=0){hide(fi);return;}
+}
+function nextStage(){
+  nx.style.display='none';
+  guided=false;curH=(curH+1)%D.length;
+  document.getElementById('hc').textContent=`${['I','II','III','IV','V','VI'][curH]} / VI`;
+  build(curH);
 }
 
 function build(h){
@@ -88,14 +95,16 @@ function build(h){
   obs.forEach(e=>e.remove());obs=[];spin=true;fi=-1;hi=-1;lock=false;
   f1.style.display='none';f1.innerHTML='';f1.style.transition='none';
   f2.style.display='none';f2.innerHTML='';f2.style.transition='none';
-  tx.classList.remove('s');ctr.classList.remove('out');
+  ctr.classList.remove('out');nb.style.display='flex';
   const cx=innerWidth/2,cy=innerHeight/2,R=Math.min(innerWidth,innerHeight)*.32;
   D[h].P.forEach((p,i)=>{
     const a=(i/D[h].P.length)*Math.PI*2-Math.PI/2;
-    const el=document.createElement('div');el.className='ob';
+    const el=document.createElement('div');el.className='ob'+(guided?'':' done');
     el.style.cssText=`left:${cx+R*Math.cos(a)-p.w/2}px;top:${cy+R*Math.sin(a)-p.h/2}px;width:${p.w}px;height:${p.h}px;`;
     el.innerHTML=`<img src="van-gogh-images/${p.i}">`;
-    el.onclick=()=>{if(!lock&&fi!==i){lock=true;if(fi>=0)hide(fi);setTimeout(()=>show(i),fi>=0?300:0);}};
+    el.onclick=()=>{
+      if(!guided&&!lock&&fi!==i){lock=true;if(fi>=0)hide(fi);setTimeout(()=>show(i),fi>=0?400:0);}
+    };
     document.getElementById('screen').appendChild(el);obs.push(el);
   });
 }
@@ -108,63 +117,44 @@ function orbit(){
     const a=(i/D[curH].P.length)*Math.PI*2-Math.PI/2+ang;
     el.style.left=(cx+R*Math.cos(a)-D[curH].P[i].w/2)+'px';
     el.style.top=(cy+R*Math.sin(a)-D[curH].P[i].h/2)+'px';
-    // Hide both current focus AND returning painting
     el.style.visibility=(i===fi||i===hi)?'hidden':'';
   });
   requestAnimationFrame(orbit);
 }
 
-function cPos(p){
-  const tw=Math.min(380,innerWidth*.35),th=tw*(p.h/p.w);
-  return {l:(innerWidth-tw)/2-160,t:(innerHeight-th)/2,w:tw,h:th};
-}
-
 function show(pi){
-  lock=true;
+  fi=pi;lock=true;
   const p=D[curH].P[pi];
-  // Get rect BEFORE setting fi (so element is still visible)
+  // Get orbit position
   const r=obs[pi].getBoundingClientRect();
-  // Now hide it in orbit
-  fi=pi;
-  // Spare fly
+  // Hide in orbit
   const fb=(f1.style.display==='block'?f2:f1);
-  fb.style.zIndex='11'; // opening fly on top
+  fb.style.zIndex='11';
   fb.style.display='block';fb.style.transition='none';
   fb.innerHTML=`<img src="van-gogh-images/${p.i}">`;
   fb.style.left=r.left+'px';fb.style.top=r.top+'px';
   fb.style.width=r.width+'px';fb.style.height=r.height+'px';
-  fb.getBoundingClientRect(); // force layout
+  fb.style.filter='brightness(.35) saturate(.25)';
+  fb.getBoundingClientRect();
+  // Calculate center position
   const isMobile=innerWidth<768||'ontouchstart'in window;
   const tw=Math.min(600,innerWidth*.75);
   const mh=innerHeight*.85,ih=Math.min(tw*(p.h/p.w),mh),fw=ih*(p.w/p.h);
   let tl2=(innerWidth-fw)/2,tt2=(innerHeight-ih)/2-20;
-  if(isMobile){
-    // On mobile, position painting below info panel
-    tt2=innerHeight*0.22; // start below info
-  }
-  // CSS transition: orbit → center (using same position as panels)
-  requestAnimationFrame(()=>{
-    fb.style.transition='left 3s ease-out,top 3s ease-out,width 3s ease-out,height 3s ease-out,filter 3s ease-out';
-    requestAnimationFrame(()=>{
-      fb.style.left=tl2+'px';fb.style.top=tt2+'px';
-      fb.style.width=fw+'px';fb.style.height=ih+'px';
-      fb.style.filter='none';
-    });
-  });
+  if(isMobile)tt2=innerHeight*0.22;
+  // Fly with transition (brightness + position)
+  fb.style.transition='left 3s ease-out,top 3s ease-out,width 3s ease-out,height 3s ease-out,filter 3s ease-out';
+  fb.style.left=tl2+'px';fb.style.top=tt2+'px';
+  fb.style.width=fw+'px';fb.style.height=ih+'px';
+  fb.style.filter='none'; // brighten during flight
   ctr.classList.add('out');
-  // Overlay
-  const ov=document.createElement('div');ov.className='ov';
-  ov.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:6;background:rgba(0,0,0,.5);opacity:0;transition:opacity .5s';
-  document.body.appendChild(ov);setTimeout(()=>ov.style.opacity='1',50);
-  // Panels like v1
+  // Create panels
   const lp=document.createElement('div'),rp=document.createElement('div');
   lp.className='pp';rp.className='pp';
+  const gap=8;
   if(isMobile){
-    // Mobile: info above painting, letter below painting — all same width, centered
-    const gap=8;
     lp.style.cssText=`position:fixed;z-index:7;pointer-events:none;left:${tl2}px;width:${fw}px;text-align:center;opacity:0;transition:opacity .6s;max-height:42vh;overflow-y:auto;top:${tt2+ih+gap}px;`;
     rp.style.cssText=`position:fixed;z-index:8;pointer-events:none;left:${tl2}px;width:${fw}px;text-align:center;opacity:0;transition:opacity .6s;max-height:18vh;overflow-y:auto;top:${tt2-gap}px;transform:translateY(-100%);`;
-    // Smaller font sizes inline
     lp.innerHTML=`<div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(196,149,106,.6);margin-bottom:4px">✉ Письмо к Тео</div><div style="font-size:11px;line-height:1.5;color:rgba(255,255,255,.5)">${p.l}</div><div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:4px">— ${p.y}</div>`;
     rp.innerHTML=`<div style="font-size:13px;color:rgba(255,255,255,.9);font-weight:300">${p.n}</div><div style="font-size:8px;color:rgba(255,255,255,.4);letter-spacing:1px;margin:0">${p.y} · ${D[curH].nm}</div><div style="font-size:11px;line-height:1.4;color:rgba(255,255,255,.55);margin:4px 0">${p.d||''}</div><div style="font-size:9px;line-height:1.4;color:rgba(255,255,255,.45)"><span style="color:rgba(196,149,106,.85);letter-spacing:1px;text-transform:uppercase;font-size:7px;display:block;margin-top:2px">Информация</span>${p.tech||''}${p.loc?'<span style="color:rgba(196,149,106,.85);letter-spacing:1px;text-transform:uppercase;font-size:7px;display:block;margin-top:2px">Где находится</span>'+p.loc:''}</div>`;
   }else{
@@ -174,97 +164,71 @@ function show(pi){
     rp.innerHTML=`<div style="height:22px"></div><div style="font-size:18px;color:rgba(255,255,255,.9)">${p.n}</div><div style="font-size:11px;color:rgba(255,255,255,.65);letter-spacing:2px;margin:2px 0 18px">${p.y} · ${D[curH].nm}</div><div style="font-size:14px;line-height:1.8;color:rgba(255,255,255,.75);margin-bottom:18px">${p.d||''}</div><div style="font-size:12px;line-height:1.9;color:rgba(255,255,255,.6)"><span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Информация</span>${p.tech||''}${p.loc?'<span style="color:rgba(196,149,106,.85);letter-spacing:2px;text-transform:uppercase;font-size:10px;display:block;margin-top:8px">Где находится</span>'+p.loc:''}</div>`;
   }
   document.body.appendChild(lp);document.body.appendChild(rp);
-  // Показываем кнопку
-  const nb=document.getElementById('nb');
-  if(nb){nb.style.display='flex';nb.style.opacity='1';}
+  // Show panels after fly animation
   setTimeout(()=>{lp.style.opacity='1';rp.style.opacity='1';},2800);
+  // Hide button during viewing
+  nb.style.display='none';
   setTimeout(()=>{lock=false;},8000);
 }
 
 function hide(pi){
   if(pi<0)return;
-  hi=pi;tx.classList.remove('s');
-  // Remove panels + overlay
-  document.querySelectorAll('.pp, .ov').forEach(el=>el.remove());
+  hi=pi;
+  // Remove panels FIRST
+  document.querySelectorAll('.pp').forEach(el=>el.remove());
+  // Mark painting as seen
+  if(guided&&pi>=0)obs[pi].classList.add('done');
   const fa=(f1.style.display==='block'?f1:f2);
-  // Put closing fly below
   fa.style.zIndex='9';
-  // Kill any CSS transition, capture start position
-  fa.style.transition='none';fa.style.filter='';
+  fa.style.transition='none';fa.style.filter='none';
   const sr=fa.getBoundingClientRect();
-  // RAF: animate toward moving orbit target
-  const st=performance.now();
-  (function raf(){
-    const p=Math.min(1,(performance.now()-st)/2500);
-    const e=1-Math.pow(1-p,3);
-    const tr=obs[pi].getBoundingClientRect();
-    fa.style.left=(sr.left+(tr.left-sr.left)*e)+'px';
-    fa.style.top=(sr.top+(tr.top-sr.top)*e)+'px';
-    fa.style.width=(sr.width+(tr.width-sr.width)*e)+'px';
-    fa.style.height=(sr.height+(tr.height-sr.height)*e)+'px';
-    fa.style.filter=`brightness(${.35+(1-.35)*e}) saturate(${.25+(1-.25)*e})`;
-    if(p<1)requestAnimationFrame(raf);else{
-      fa.style.zIndex=''; // reset z-index
-      fa.style.display='none';fa.innerHTML='';fa.style.filter='';
-      hi=-1;
-    }
-  })();
+  const tr=obs[pi].getBoundingClientRect();
+  // Animate: darken + fly back
+  fa.style.transition='left 2.5s ease-out,top 2.5s ease-out,width 2.5s ease-out,height 2.5s ease-out,filter 2.5s ease-out';
+  fa.style.left=tr.left+'px';fa.style.top=tr.top+'px';
+  fa.style.width=tr.width+'px';fa.style.height=tr.height+'px';
+  fa.style.filter='brightness(.35) saturate(.25)';
+  setTimeout(()=>{
+    fa.style.display='none';fa.innerHTML='';fa.style.filter='';
+    hi=-1;
+  },2600);
+  nb.style.display='flex';
 }
 
+function nextPaint(){
+  if(!guided){hide(fi);return;}
+  if(fi<0){show(0);seq=0;return;}
+  const ni=seq+1;
+  if(ni<D[curH].P.length){
+    hide(fi);show(ni);seq=ni;
+  }else{
+    // All 6 viewed — show "next stage" button
+    hide(fi);
+    seq=0;
+    nx.style.display='block';
+    nb.style.display='none';
+  }
+}
+
+// Touch & wheel
 window.addEventListener('wheel',(e)=>{
   if(!document.getElementById('screen').classList.contains('on')||lock)return;
   if(e.deltaY<0)return;
-  lock=true;nextPaint();
+  e.preventDefault();
+  lock=true;setTimeout(nextPaint,50);
+},{passive:false});
+window.addEventListener('touchend',e=>{
+  if(!document.getElementById('screen').classList.contains('on')||lock)return;
+  lock=true;setTimeout(nextPaint,50);
 },{passive:true});
 
-// Touch & click — навешиваем прямо на body с pointer
-document.body.style.cursor='pointer';
-document.body.ontouchstart=(e)=>{
-  if(lock)return;
-  if(!document.getElementById('screen').classList.contains('on'))return;
-  lock=true;setTimeout(nextPaint,50);
-};
-document.body.onclick=(e)=>{
-  if(lock)return;
-  if(!document.getElementById('screen').classList.contains('on'))return;
-  lock=true;setTimeout(nextPaint,50);
-};
-// Intro tap to skip + auto-start
-document.getElementById('intro').style.cursor='pointer';
-document.getElementById('intro').ontouchstart=(e)=>{
-  document.getElementById('intro').classList.add('out');
-  document.getElementById('screen').classList.add('on');
-  build(0);orbit();
-};
-// Auto-start after 5s if no tap
-setTimeout(()=>{
-  if(!document.getElementById('screen').classList.contains('on')){
-    document.getElementById('intro').classList.add('out');
-    document.getElementById('screen').classList.add('on');
-    build(0);orbit();
-  }
-},5000);
-
-function nextPaint(){
-  if(fi<0){show(0);return;}
-  const ni=fi+1;
-  if(ni<D[curH].P.length){hide(fi);show(ni);}
-  else{
-    hide(fi);
-    setTimeout(()=>{
-      spin=true;curH=(curH+1)%D.length;
-      document.getElementById('hc').textContent=`${['I','II','III','IV','V','VI'][curH]} / VI`;
-      build(curH);
-    },2800);
-  }
-}
-
+// START
 const c=document.getElementById('bg'),ctx=c.getContext('2d');
 let w,h;function rs(){w=c.width=innerWidth;h=c.height=innerHeight}
 rs();addEventListener('resize',rs);
 let pt=[];for(let i=0;i<60;i++)pt.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,vx:(Math.random()-.5)*.1,vy:-(Math.random()*.05+.01),o:Math.random()*.2+.03,p:Math.random()*6.28});
 function dr(){ctx.clearRect(0,0,w,h);pt.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.p+=.005;const a=p.o*(.5+.5*Math.sin(p.p));ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.28);ctx.fillStyle=`rgba(255,230,210,${a})`;ctx.fill();if(p.y<-10||p.x<-10||p.x>w+10){p.y=Math.random()*h;p.x=Math.random()*w}});requestAnimationFrame(dr)}dr();
-setTimeout(()=>{document.getElementById('intro').classList.add('out');document.getElementById('screen').classList.add('on');build(0);orbit();},3500);
+setTimeout(()=>{document.getElementById('intro').classList.add('out');document.getElementById('screen').classList.add('on');build(0);guided=true;seq=0;orbit();},3500);
 </script>
 </body>
 </html>
