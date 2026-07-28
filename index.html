@@ -179,6 +179,8 @@ function hide(pi){
   if(pi<0)return;
   hi=pi;
   document.querySelectorAll('.pp').forEach(el=>el.remove());
+  // Restore center text
+  ctr.classList.remove('out');
   // Mark seen only during guided tour
   if(guided)obs[pi].classList.add('done');
   const fa=(f1.style.display==='block'?f1:f2);
