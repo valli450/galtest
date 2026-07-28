@@ -179,23 +179,31 @@ function hide(pi){
   if(pi<0)return;
   hi=pi;
   document.querySelectorAll('.pp').forEach(el=>el.remove());
-  // Restore center text
   ctr.classList.remove('out');
-  // Mark seen only during guided tour
   if(guided)obs[pi].classList.add('done');
   const fa=(f1.style.display==='block'?f1:f2);
   fa.style.zIndex='9';
   fa.style.transition='none';fa.style.filter='none';
   const sr=fa.getBoundingClientRect();
-  const tr=obs[pi].getBoundingClientRect();
-  fa.style.transition='left 2.5s ease-out,top 2.5s ease-out,width 2.5s ease-out,height 2.5s ease-out,filter 2.5s ease-out';
-  fa.style.left=tr.left+'px';fa.style.top=tr.top+'px';
-  fa.style.width=tr.width+'px';fa.style.height=tr.height+'px';
-  fa.style.filter='brightness(.35) saturate(.25)';
+  // Phase 1: shrink toward center (0.5s)
+  const cx=innerWidth/2,cy=innerHeight/2;
+  const midW=sr.w*.6,midH=sr.h*.6;
+  fa.style.transition='left .4s ease-out,top .4s ease-out,width .4s ease-out,height .4s ease-out,filter .4s ease-out';
+  fa.style.left=(cx-midW/2)+'px';fa.style.top=(cy-midH/2)+'px';
+  fa.style.width=midW+'px';fa.style.height=midH+'px';
+  fa.style.filter='brightness(.2) saturate(.2)';
+  // Phase 2: fly to orbit position
   setTimeout(()=>{
-    fa.style.display='none';fa.innerHTML='';fa.style.filter='';
-    hi=-1;
-  },2600);
+    const tr=obs[pi].getBoundingClientRect();
+    fa.style.transition='left 2s ease-out,top 2s ease-out,width 2s ease-out,height 2s ease-out,filter 2s ease-out';
+    fa.style.left=tr.left+'px';fa.style.top=tr.top+'px';
+    fa.style.width=tr.width+'px';fa.style.height=tr.height+'px';
+    fa.style.filter='brightness(.35) saturate(.25)';
+    setTimeout(()=>{
+      fa.style.display='none';fa.innerHTML='';fa.style.filter='';
+      hi=-1;
+    },2100);
+  },450);
   nb.style.display='flex';
 }
 function nextPaint(){
