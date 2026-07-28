@@ -14,7 +14,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #intro h1 span{color:#c4966a}
 #intro p{font-size:13px;color:rgba(255,255,255,.3);max-width:400px;line-height:1.8;opacity:0;animation:fi 1s 1.5s forwards}
 @keyframes fi{to{opacity:1}}
-#screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;visibility:hidden;opacity:0;transition:opacity .8s;align-items:center;justify-content:center}
+#screen{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1;visibility:hidden;opacity:0;transition:opacity .8s;display:flex;align-items:center;justify-content:center}
 #screen.on{visibility:visible;opacity:1}
 #ctr{text-align:center;position:relative;z-index:3;transition:opacity .6s,transform .6s;pointer-events:none}
 #ctr.out{opacity:0;transform:scale(.9)}
@@ -22,7 +22,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 #ctr h2{font-size:26px;font-weight:300;margin-bottom:6px}
 #ctr .pd{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:2px;margin-bottom:14px}
 #ctr .d{font-size:12px;line-height:1.8;color:rgba(255,255,255,.25);max-width:340px;margin:0 auto}
-.ob{position:absolute;border-radius:3px;overflow:hidden;pointer-events:none;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.4);transition:filter .8s,opacity .8s}
+.ob{position:absolute;border-radius:3px;overflow:hidden;pointer-events:none;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.4);filter:brightness(.35) saturate(.25);transition:filter .8s,opacity .8s}
 .ob img{width:100%;height:100%;object-fit:cover;display:block}
 .ob.v{visibility:hidden}
 .ob.done{filter:brightness(.6) saturate(.6)!important;pointer-events:auto!important}
