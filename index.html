@@ -185,15 +185,22 @@ function hide(pi){
   fa.style.zIndex='9';
   fa.style.transition='none';fa.style.filter='none';
   const sr=fa.getBoundingClientRect();
-  const tr=obs[pi].getBoundingClientRect();
-  fa.style.transition='left 2.5s ease-out,top 2.5s ease-out,width 2.5s ease-out,height 2.5s ease-out,filter 2.5s ease-out';
-  fa.style.left=tr.left+'px';fa.style.top=tr.top+'px';
-  fa.style.width=tr.width+'px';fa.style.height=tr.height+'px';
-  fa.style.filter='brightness(.35) saturate(.25)';
-  setTimeout(()=>{
-    fa.style.display='none';fa.innerHTML='';fa.style.filter='';
-    hi=-1;
-  },2600);
+  // RAF: continuously track moving orbit target
+  const dur=2500,start=performance.now();
+  (function raf(){
+    const p=Math.min(1,(performance.now()-start)/dur);
+    const e=1-Math.pow(1-p,3); // ease-out
+    const tr=obs[pi].getBoundingClientRect();
+    fa.style.left=(sr.left+(tr.left-sr.left)*e)+'px';
+    fa.style.top=(sr.top+(tr.top-sr.top)*e)+'px';
+    fa.style.width=(sr.width+(tr.width-sr.width)*e)+'px';
+    fa.style.height=(sr.height+(tr.height-sr.height)*e)+'px';
+    fa.style.filter=`brightness(${.35+(1-.35)*(1-e)}) saturate(${.25+(1-.25)*(1-e)})`;
+    if(p<1)requestAnimationFrame(raf);else{
+      fa.style.display='none';fa.innerHTML='';fa.style.filter='';
+      hi=-1;
+    }
+  })();
   nb.style.display='flex';
 }
 function nextPaint(){
