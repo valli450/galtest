@@ -204,7 +204,7 @@ function nextPaint(){
   if(ni<D[curH].P.length){
     hide(fi);show(ni);seq=ni;
   }else{
-    hide(fi);
+    hide(fi);fi=-1;
     // All 6 done — brighten all, show next stage
     seq=0;guided=false;doneAll=true;
     obs.forEach(el=>el.classList.add('done'));
