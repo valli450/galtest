@@ -272,10 +272,14 @@ ia.play().catch(function(){});
 // Start exhibition
 function startExhibition(){
   ia.play();
-  document.getElementById('intro').classList.add('out');
-  document.getElementById('screen').classList.add('on');
-  build(0);guided=false;seq=0;orbit();
-  document.getElementById('viewBtn').style.display='block';
+  startBtn.textContent='Слушаем...';
+  startBtn.style.pointerEvents='none';
+  ia.addEventListener('ended',function(){
+    document.getElementById('intro').classList.add('out');
+    document.getElementById('screen').classList.add('on');
+    build(0);guided=false;seq=0;orbit();
+    document.getElementById('viewBtn').style.display='block';
+  },{once:true});
 }
 
 // View button: start guided tour
