@@ -47,7 +47,7 @@ body{background:#0a0806;color:#fff;font-family:Georgia,serif;height:100vh;width:
 <audio id="ia" src="audio/intro.mp3" preload="auto"></audio>
 <canvas id="bg"></canvas>
 <div id="h"><div class="b">Быть <span>Ван Гогом</span></div><div class="c" id="hc">I / VI</div></div>
-<div id="intro"><img src="images/2-self-portrait.jpg"><h1>Быть <span>Ван Гогом</span></h1><p>Шесть периодов жизни Винсента Ван Гога — от шахтёрского посёлка Нюэнена до последних полей Овера. 36 картин, написанных за десять лет. Реальные письма к брату Тео, которые Ван Гог писал на протяжении всей своей жизни. Каждое письмо — это шаг. От неуверенности к цвету. От тьмы к свету. Пройдите путь человека, который стал художником вопреки всему — вопреки нищете, непониманию, одиночеству. И убедитесь: искусство — это не то, что ты видишь. Это то, что ты заставляешь других увидеть.</p><button id="startBtn" onclick="startExhibition()" style="background:rgba(196,149,106,.08);border:1px solid rgba(196,149,106,.15);color:rgba(196,149,106,.3);font-size:13px;letter-spacing:3px;padding:10px 28px;border-radius:4px;cursor:default;margin-top:16px;font-family:Georgia,serif;pointer-events:none;opacity:.35;transition:all .8s">Войти в зал</button></div>
+<div id="intro"><img src="images/2-self-portrait.jpg"><h1>Быть <span>Ван Гогом</span></h1><p>Шесть периодов жизни Винсента Ван Гога — от шахтёрского посёлка Нюэнена до последних полей Овера. 36 картин, написанных за десять лет. Реальные письма к брату Тео, которые Ван Гог писал на протяжении всей своей жизни. Каждое письмо — это шаг. От неуверенности к цвету. От тьмы к свету. Пройдите путь человека, который стал художником вопреки всему — вопреки нищете, непониманию, одиночеству. И убедитесь: искусство — это не то, что ты видишь. Это то, что ты заставляешь других увидеть.</p><button id="startBtn" onclick="playIntro()" style="background:rgba(196,149,106,.12);border:1px solid rgba(196,149,106,.3);color:#c4966a;font-size:13px;letter-spacing:3px;padding:10px 28px;border-radius:4px;cursor:pointer;margin-top:16px;font-family:Georgia,serif;pointer-events:auto;opacity:1;transition:all .8s">Прослушать</button></div>
 <div id="screen"><div id="ctr"><div class="l" id="cl"></div><h2 id="cn"></h2><div class="pd" id="cpd"></div><div class="d" id="cd"></div></div></div>
 <div class="fly" id="f1"></div><div class="fly" id="f2"></div>
 <button id="viewBtn" onclick="startTour()" style="position:fixed;bottom:20px;right:20px;z-index:25;background:rgba(196,149,106,.12);border:1px solid rgba(196,149,106,.3);color:#c4966a;font-size:10px;letter-spacing:2px;padding:8px 16px;border-radius:4px;cursor:pointer;display:none;font-family:Georgia,serif">Посмотреть картины</button>
@@ -270,15 +270,25 @@ ia.play().catch(function(){});
 
 
 // Start exhibition
-function startExhibition(){
+function playIntro(){
   ia.play();
-  startBtn.textContent='Слушаем...';
+  startBtn.textContent='Войти в зал';
   startBtn.style.pointerEvents='none';
+  startBtn.style.cursor='default';
+  startBtn.style.opacity='.35';
   ia.addEventListener('ended',function(){
-    document.getElementById('intro').classList.add('out');
-    document.getElementById('screen').classList.add('on');
-    build(0);guided=false;seq=0;orbit();
-    document.getElementById('viewBtn').style.display='block';
+    startBtn.style.pointerEvents='auto';
+    startBtn.style.cursor='pointer';
+    startBtn.style.background='#c4966a';
+    startBtn.style.color='#0a0806';
+    startBtn.style.borderColor='#c4966a';
+    startBtn.style.opacity='1';
+    startBtn.onclick=function(){
+      document.getElementById('intro').classList.add('out');
+      document.getElementById('screen').classList.add('on');
+      build(0);guided=false;seq=0;orbit();
+      document.getElementById('viewBtn').style.display='block';
+    };
   },{once:true});
 }
 
