@@ -1,0 +1,24 @@
+// Van Gogh flower painting reveal transition for Hall 3 (Paris)
+// Each brush stroke reveals a piece of the actual painting
+
+// Load the painting image
+var flowerImg = new Image();
+flowerImg.crossOrigin = 'anonymous';
+flowerImg.src = 'images/flowers-paris.jpg'; // or a URL
+
+function drawStroke() {
+  if(isFlowerReveal && flowerImg.complete && flowerImg.naturalWidth > 0){
+    // Draw a brush-shaped chunk of the painting
+    var sx = Math.random() * (flowerImg.naturalWidth - 100);
+    var sy = Math.random() * (flowerImg.naturalHeight - 100);
+    var sw = 30 + Math.random() * 80;
+    var sh = 20 + Math.random() * 60;
+    var dx = sx / flowerImg.naturalWidth * innerWidth;
+    var dy = sy / flowerImg.naturalHeight * innerHeight;
+    var dw = sw / flowerImg.naturalWidth * innerWidth;
+    var dh = sh / flowerImg.naturalHeight * innerHeight;
+    
+    bx.globalAlpha = 0.6 + Math.random() * 0.4;
+    bx.drawImage(flowerImg, sx, sy, sw, sh, dx, dy, dw, dh);
+  }
+}

@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Быть Ван Гогом</title>
+<style>
+  :root{
+    --bg:#040404; --ink:#ECE6DA; --muted:#8b8578; --gold:#B89968;
+    --serif:Georgia,'Times New Roman',serif;
+    --sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:var(--bg);overflow:hidden;font-family:var(--sans);color:var(--ink)}
+  #app{position:fixed;inset:0}
+  canvas{display:block}
+
+  .vignette{position:fixed;inset:0;pointer-events:none;z-index:5;
+    background:radial-gradient(120% 100% at 50% 45%,transparent 42%,rgba(0,0,0,.55) 100%)}
+
+  /* ---------- hall intro overlay ---------- */
+  .hall-intro{position:fixed;inset:0;z-index:12;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;padding:40px;background:#040404;
+    opacity:0;pointer-events:none;transition:opacity 0.3s ease}
+  .hall-intro.show{opacity:0.8;pointer-events:auto}
+  .hall-badge{font-size:10px;letter-spacing:.44em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+  .hall-title{font-family:var(--serif);font-size:clamp(28px,5vw,52px);font-weight:400;color:var(--ink);margin-bottom:8px}
+  .hall-period{font-size:10px;letter-spacing:.28em;color:var(--muted);margin-bottom:24px}
+  .hall-desc{font-size:clamp(12px,1.2vw,14px);line-height:1.7;color:var(--muted);max-width:520px;margin:0 auto 32px}
+  .enter-hall{appearance:none;border:1px solid var(--gold);background:transparent;color:var(--ink);
+    font-family:var(--sans);font-size:11px;letter-spacing:.32em;text-transform:uppercase;
+    padding:14px 36px;cursor:pointer;transition:background .4s,color .4s}
+  .enter-hall:hover{background:var(--gold);color:#0a0805}
+
+  /* ---------- letter left / info right ---------- */
+  .letter-left{position:fixed;left:32px;top:50%;z-index:32;max-width:320px;
+    opacity:0;transform:translateY(calc(-50% + 10px));pointer-events:none}
+  .letter-left.show{opacity:1;transform:translateY(-50%);pointer-events:auto}
+  .letter-left .quote{font-family:var(--serif);font-size:13px;line-height:1.7;color:var(--muted);font-style:italic;opacity:0;transition:opacity .35s}
+  .letter-left .ref{font-size:10px;color:rgba(255,255,255,.2);margin-top:10px;letter-spacing:.1em;opacity:0;transition:opacity .35s}
+
+  .info-right{position:fixed;right:32px;top:50%;z-index:32;text-align:right;max-width:380px;
+    opacity:0;transform:translateY(calc(-50% + 10px));pointer-events:none}
+  .info-right.show{opacity:1;transform:translateY(-50%);pointer-events:auto}
+  .info-right .eyebrow{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+  .info-right .title{font-family:var(--serif);font-size:clamp(20px,2.5vw,32px);line-height:1.1;font-weight:400}
+  .info-right .desc{font-size:clamp(11px,1vw,13px);line-height:1.6;color:var(--muted);margin-top:10px}
+
+  /* ---------- bottom HUD ---------- */
+  .hud{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:20px 32px 28px;
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(0deg,rgba(0,0,0,.8),transparent);pointer-events:none}
+  .hud.show{opacity:1;transform:none}
+  .nop{pointer-events:auto}
+  .next-hall{font-family:var(--sans);font-size:9px;letter-spacing:.32em;text-transform:uppercase;border:1px solid var(--gold);background:transparent;color:var(--ink);padding:10px 22px;cursor:pointer;opacity:0;transition:opacity .6s;pointer-events:none}
+  .next-hall.active{opacity:1;pointer-events:auto}
+  .next-hall.active:hover{background:var(--gold);color:#0a0805}
+  .nav{display:flex;align-items:center;gap:18px;pointer-events:auto}
+  .count{font-family:var(--serif);font-size:13px;letter-spacing:.2em;color:var(--muted);min-width:70px;text-align:right}
+  .count b{color:var(--ink);font-weight:400}
+  .arrow{width:44px;height:44px;border:1px solid rgba(184,153,104,.35);background:transparent;color:var(--ink);
+    border-radius:50%;cursor:pointer;font-size:15px;transition:.25s;display:grid;place-items:center}
+  .arrow:hover{border-color:var(--gold);background:rgba(184,153,104,.1)}
+  .arrow:disabled{opacity:.25;cursor:default}
+
+  /* ---------- curtain / entrance overlay ---------- */
+  .gate{position:fixed;inset:0;z-index:20;display:grid;place-items:center}
+  .curtain-panel{position:absolute;top:0;bottom:0;width:52%;
+    background:#060606;
+    background-image:
+      linear-gradient(90deg,rgba(255,255,255,.06),transparent 18%,rgba(0,0,0,.6) 46%,transparent 60%,rgba(255,255,255,.04) 82%,transparent),
+      repeating-linear-gradient(90deg,#0a0a0a 0 22px,#000 22px 46px,#0d0d0d 46px 60px);
+    box-shadow:inset 0 40px 90px rgba(0,0,0,.9);
+    transition:transform 2.2s cubic-bezier(.7,0,.2,1),opacity 2.2s ease}
+  .curtain-panel.left{left:0;border-right:1px solid rgba(255,255,255,.05)}
+  .curtain-panel.right{right:0;transform:scaleX(-1)}
+  .gate.open .curtain-panel.left{transform:translateX(-102%)}
+  .gate.open .curtain-panel.right{transform:scaleX(-1) translateX(-102%)}
+  .gate.open{pointer-events:none}
+
+  .gate-center{position:relative;z-index:2;text-align:center;transition:opacity .7s ease}
+  .gate.open .gate-center{opacity:0}
+  .gate-eyebrow{font-size:11px;letter-spacing:.44em;text-transform:uppercase;color:var(--gold);margin-bottom:20px}
+  .gate-title{font-family:var(--serif);font-size:clamp(38px,7vw,72px);font-weight:400;line-height:1;letter-spacing:.02em}
+  .gate-desc{margin:14px auto 0;max-width:400px;font-size:13px;line-height:1.6;color:var(--muted)}
+  .gate-sub{margin:24px 0 36px;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);opacity:.6}
+  .enter{appearance:none;border:1px solid var(--gold);background:transparent;color:var(--ink);
+    font-family:var(--sans);font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+    padding:14px 38px;cursor:pointer;transition:background .4s,color .4s;min-width:220px}
+  .enter:hover{background:var(--gold);color:#0a0805}
+  .enter.listening{background:rgba(184,153,104,.08);border-color:rgba(184,153,104,.3);cursor:default}
+  .enter.done{border-color:var(--gold);background:transparent;color:var(--ink)}
+
+  @media (max-width:600px){
+    .letter-left{left:5%;right:5%;top:auto;bottom:50px;max-width:none;text-align:center;transform:none !important}
+    .letter-left .quote{font-size:11px;line-height:1.5}
+    .letter-left .ref{font-size:9px}
+    .letter-left.show{opacity:1}
+    .info-right{right:5%;left:5%;top:50px;bottom:auto;max-width:none;text-align:center;transform:none !important}
+    .info-right .eyebrow{font-size:9px;letter-spacing:.3em}
+    .info-right .title{font-size:18px}
+    .info-right .desc{font-size:11px;line-height:1.5}
+    .info-right.show{opacity:1}
+    .hud{padding:10px 12px 16px}
+    .curtain-panel{width:54%}
+    .gate-desc{font-size:11px;max-width:300px}
+    .gate-title{font-size:clamp(28px,9vw,40px)}
+    .enter{padding:12px 28px;font-size:10px;min-width:170px}
+    .enter-hall{padding:12px 28px;font-size:10px}
+    .hall-title{font-size:24px}
+    .hall-desc{font-size:11px;max-width:300px}
+    .next-hall{font-size:8px;padding:8px 16px}
+    .arrow{width:34px;height:34px;font-size:12px}
+    .count{font-size:11px;min-width:54px}
+  }
+  @media (min-width:601px) and (max-width:1024px){
+    .letter-left{left:5%;right:5%;top:auto;bottom:60px;max-width:none;text-align:center;transform:none !important}
+    .letter-left .quote{font-size:12px;line-height:1.5}
+    .letter-left .ref{font-size:10px}
+    .letter-left.show{opacity:1}
+    .info-right{right:5%;left:5%;top:60px;bottom:auto;max-width:none;text-align:center;transform:none !important}
+    .info-right .eyebrow{font-size:10px;letter-spacing:.3em}
+    .info-right .title{font-size:22px}
+    .info-right .desc{font-size:12px;line-height:1.5}
+    .info-right.show{opacity:1}
+    .enter{padding:14px 34px;font-size:10px}
+    .gate-title{font-size:clamp(34px,6vw,52px)}
+    .hall-title{font-size:clamp(24px,4vw,36px)}
+    .hall-desc{font-size:12px;max-width:400px}
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="vignette"></div>
+
+<!-- hall intro overlay -->
+<div class="hall-intro" id="hallIntro">
+  <div class="hall-badge">ЗАЛ 1</div>
+  <h2 class="hall-title">Голландия</h2>
+  <div class="hall-period">1880–1885</div>
+  <p class="hall-desc" id="hallDesc">Ван Гог начинает путь художника в 27 лет — без образования, без денег, без права на успех. Он живёт среди шахтёров и крестьян, пишет тёмными земляными тонами. Это время поиска: он ещё не нашёл свой цвет, но уже нашёл свой предмет — человека труда.</p>
+  <button class="enter-hall" id="enterHall">НАЧАТЬ ПРОСМОТР</button>
+</div>
+
+<!-- letter left -->
+<div class="letter-left" id="letterLeft">
+  <div class="quote" id="letterQuote">«Я хотел показать людей, которые едят свой хлеб, заработанный своими руками. Это была грандиозная битва, но я испытывал огромный энтузиазм.»</div>
+  <div class="ref" id="letterRef">Письмо 497, Тео, 2 мая 1885</div>
+</div>
+
+<!-- info right -->
+<div class="info-right" id="infoRight">
+  <div class="eyebrow" id="eyebrow">Зал · № 01</div>
+  <h1 class="title fade" id="title">Едоки картофеля</h1>
+  <p class="desc fade" id="desc">Грубые лица, мозолистые руки — в этом больше правды, чем в любой гладкой картине. 1885.<br><span style="font-size:10px;color:rgba(255,255,255,.3)">Музей Ван Гога, Амстердам · Холст, масло</span></p>
+</div>
+
+<!-- bottom HUD -->
+<div class="hud" id="hud">
+  <button class="next-hall" id="nextHall">Следующий зал →</button>
+  <div class="nav">
+    <button class="arrow" id="prev" aria-label="Previous">←</button>
+    <div class="count"><b id="cur">01</b> / <span id="total">06</span></div>
+    <button class="arrow" id="next" aria-label="Next">→</button>
+  </div>
+</div>
+
+<!-- entrance gate -->
+<div class="gate" id="gate">
+  <div class="curtain-panel left"></div>
+  <div class="curtain-panel right"></div>
+  <div class="gate-center">
+    <div class="gate-eyebrow">Шесть периодов жизни</div>
+    <h1 class="gate-title">Быть <span style="color:var(--gold)">Ван Гогом</span></h1>
+    <div class="gate-desc">36 картин, 6 периодов, реальные письма к брату Тео. Пройдите путь человека, который стал художником вопреки всему.</div>
+    <div class="gate-sub">Откройте занавес</div>
+    <button class="enter" id="enter">Прослушать вступление</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var T = THREE;
+  var isMobile = innerWidth < 600;
+
+  // ---------- Van Gogh artworks per hall ----------
+  var ALL_WORKS = [
+    // Hall 1: Голландия
+    [
+      { img:'1-potato-eaters.jpg', title:'Едоки картофеля', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Грубые лица, мозолистые руки — в этом больше правды, чем в любой гладкой картине. 1885.', a:1.41, letter:'Я хотел показать людей, которые едят свой хлеб, заработанный своими руками. Это была грандиозная битва, но я испытывал огромный энтузиазм.', ref:'Письмо 497, Тео, 2 мая 1885' },
+      { img:'2-self-portrait.jpg', title:'Автопортрет', loc:'Музей Орсе, Париж', tech:'Холст, масло', desc:'Смотрю в зеркало и вижу незнакомца. Кто я? Просто смотрю и пишу. 1887.', a:0.80, letter:'Я написал себя не таким, какой я есть, а таким, каким мечтаю быть.', ref:'Письмо 544a, Тео, 1888' },
+      { img:'3-irises.jpg', title:'Ирисы', loc:'Музей Гетти, Лос-Анджелес', tech:'Холст, масло', desc:'В саду нашёл ирисы. Растут сами — дикие, сильные. Говорят, получилось дико. Но ирисы и есть дикие. 1889.', a:1.31, letter:'Этюд цветов — может быть, ирисы. Работаю в саду каждый день, погода стоит прекрасная.', ref:'Письмо 805, Тео, сентябрь 1889' },
+      { img:'9-cottage.jpg', title:'Дом ткача', loc:'Музей Ван Гога, Амстердам', tech:'Акварель', desc:'Домик среди полей. Простая жизнь — в ней больше поэзии, чем в роскоши. 1884.', a:1.2, letter:'Мне тесно. Скоро всё изменится. Хочу цвета, света. Антверпен — порт. Корабли из Японии. С ними — новые краски.', ref:'Письмо 369, Тео, 1884' },
+      { img:'5-church.jpg', title:'Церковь в Овере', loc:'Музей Орсе, Париж', tech:'Холст, масло', desc:'Церковь стоит на холме. Фиолетовая на тёмно-синем небе. Одна дорога к церкви, другая — в поле. 1890.', a:0.77, letter:'Здание кажется пурпурным на фоне неба цвета глубокого кобальта. Витражи выглядят как ультрамариновые пятна, крыша — фиолетовая и оранжевая.', ref:'Письмо 879, Тео, июнь 1890' },
+      { img:'38-congregation.jpg', title:'Церковь в Нюэнене', loc:'Частная коллекция', tech:'Холст, масло', desc:'Был в Амстердаме, три дня в музее. Стоял перед Рембрандтом. Он тоже был беден, непонят. Но продолжал работать. 1884.', a:1.23, letter:'Был в Амстердаме, три дня в музее. Стоял перед Рембрандтом. Он тоже был беден, непонят. Но продолжал работать. После смерти признали.', ref:'Письмо 369, Тео, 1884' },
+    ],
+    // Hall 2: Антверпен (4 картины)
+    [
+      { img:'17-skull.jpg', title:'Череп курильщика', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Череп с сигаретой — ирония над академическими методами. 1885.', a:1.2, letter:'Купил череп у студентов-медиков. Всё может быть искусством. Даже смерть.', ref:'Письмо 437, Тео, ноябрь 1885' },
+      { img:'40-ginger-jar.jpg', title:'Имбирная ваза', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Японские мотивы — цветы, ветки, простые формы. 1885.', a:1.0, letter:'В моей мастерской теперь много японских гравюр. Маленькие женские фигуры в садах, всадники, цветы, искривлённые ветки терновника.', ref:'Письмо 437, Тео, 28 ноября 1885' },
+      { img:'18-nature-morte-bible.jpg', title:'Библия и романы', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Библия отца рядом с романом Золя «Радость жизни». 1885.', a:1.3, letter:'В моём натюрморте Библия отца лежит открытой — рядом с ней роман Золя. Свет свечи падает на обе. Время старой веры уходит.', ref:'Письмо 537, Тео, октябрь 1885' },
+      { img:'19-head-woman.jpg', title:'Голова крестьянки', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Этюд женской головы. Поиск характера через портрет. 1885.', a:0.9, letter:'Продолжаю писать головы. Чтение — моя непреодолимая страсть. Золя, Флобер, Мопассан — проглатываю их книги.', ref:'Письмо 155, Кем, июнь 1880' },
+    ],
+    // Hall 3: Париж (6 картин)
+    [
+      { img:'11-self-portrait-hat.jpg', title:'Автопортрет в серой шляпе', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Написал себя точками. Синий и оранжевый, красный и зелёный. Изучал Сёра, но хочу найти свой путь. 1887.', a:0.82, letter:'В Антверпене я даже не знал что такое импрессионисты. Теперь я увидел их и делаю серию цветовых этюдов.', ref:'Письмо 569, Ливенсу, сентябрь 1886' },
+      { img:'12-portrait-painter.jpg', title:'Автопортрет-художник', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Пишу себя не таким, какой я есть, а таким, каким мечтаю быть. 1888.', a:1.26, letter:'Я написал себя не таким, какой я есть, а таким, каким мечтаю быть.', ref:'Письмо 544a, Тео, 1888' },
+      { img:'13-montmartre.jpg', title:'Вид на Монмартр', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'С холма видно весь Париж. Мельницы, крыши, дым. Внизу город с шумом и грязью. Вверху небо. Между ними — я с холстом. 1886.', a:1.5, letter:'Париж это Париж. Французский воздух проясняет голову и делает добро огромное добро.', ref:'Письмо 569, Ливенсу, сентябрь 1886' },
+      { img:'14-mackerels.jpg', title:'Скумбрия', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Рыба на столе. Оттенки серебра, синего, фиолетового. Даже мёртвая рыба может стать бессмертной, если написать её с любовью. 1886.', a:0.71, letter:'Пытаюсь передать интенсивный цвет а не серую гармонию. Я сделал серию цветовых этюдов.', ref:'Письмо 569, Ливенсу, сентябрь 1886' },
+      { img:'15-apples.jpg', title:'Яблоки', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Яблоки как лица — каждое со своим характером. Цвет — эмоция. Правильный цвет превращает плохую картину в шедевр. 1887.', a:1.59, letter:'Ищу контрасты синего с оранжевым красного с зелёным жёлтого с фиолетовым.', ref:'Письмо 569, Ливенсу, сентябрь 1886' },
+      { img:'16-courtesan.jpg', title:'Куртизанка (по Эйсэну)', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Мне не нужны японские гравюры — я в Японии здесь. Японец берёт ветку, птицу, волну — и делает это вселенной. 1887.', a:1.31, letter:'Мы любим японскую живопись. Через некоторое время ты видишь более японским глазом чувствуешь цвет иначе.', ref:'Письмо 620, Тео, 5 июня 1888' },
+    ],
+    // Hall 4: Арль (6 картин)
+    [
+      { img:'20-sunflowers.jpg', title:'Подсолнухи', loc:'Национальная галерея, Лондон', tech:'Холст, масло', desc:'Каждый раз ищу новый оттенок жёлтого. Подсолнух никогда не бывает одинаковым. Он живёт, пока светит солнце. 1888.', a:0.76, letter:'Я хочу набить комнату огромными букетами жёлтого. Жёлтый — цвет солнца, цвет жизни.', ref:'Письмо 574, Тео, январь 1888' },
+      { img:'21-bedroom.jpg', title:'Спальня', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Стены лиловые, кровать жёлтая — я хотел написать тишину. Спальня — убежище от мира. Каждый цвет имеет значение. 1888.', a:1.26, letter:'Я написал спальню. Цвета в ней выражают покой. Фиолетовые стены, жёлтая кровать, красное одеяло.', ref:'Письмо 574, Тео, январь 1888' },
+      { img:'22-rhone.jpg', title:'Звёздная ночь над Роной', loc:'Музей Орсе, Париж', tech:'Холст, масло', desc:'Ночь богаче цветом, чем день. Фиолетовые, синие, зелёные тона. Когда пишу ночь, не использую чёрный. Чёрного нет в природе. 1888.', a:0.83, letter:'Мне часто кажется что ночь красочнее дня. Огни города отражаются в синей реке. Звёзды как драгоценные камни.', ref:'Письмо 574, Тео, январь 1888' },
+      { img:'23-cafe-terrace.jpg', title:'Ночное кафе', loc:'Йельский университет', tech:'Холст, масло', desc:'Шесть или семь разных красных. Красный и зелёный — убийственная гармония. Я пытался написать место, где люди сходят с ума. 1888.', a:0.67, letter:'В кафе я пытался выразить ужасную человеческую страсть. Красный и зелёный, жёлтый и сине-зелёный.', ref:'Письмо 574, Тео, январь 1888' },
+      { img:'24-portrait-peasant.jpg', title:'Портрет крестьянина', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Простой человек. Написал его на жёлтом фоне как святого. Он единственный, кто не считает меня сумасшедшим. 1888.', a:1.28, letter:'Я пишу портреты на жёлтом фоне. Эти люди — моя семья на юге. Они принимают меня таким, какой я есть.', ref:'Письмо 574, Тео, январь 1888' },
+      { img:'25-fishing-boats.jpg', title:'Лодки в Сен-Мари', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Белые домики под синим небом. За три дня — три картины. Средиземное море — не Северное. Здесь цвета кричат. 1888.', a:1.24, letter:'За три дня написал три картины. Средиземное море — не Северное. Здесь цвета кричат. Я понял — юг моё место.', ref:'Письмо 574, Тео, январь 1888' },
+    ],
+    // Hall 5: Сен-Реми (6 картин)
+    [
+      { img:'26-irises.jpg', title:'Ирисы', loc:'Музей Гетти, Лос-Анджелес', tech:'Холст, масло', desc:'В саду нашёл ирисы. Растут сами — дикие, сильные. Говорят, получилось дико. Но ирисы и есть дикие. 1889.', a:1.34, letter:'В саду нашёл ирисы. Растут сами — дикие, сильные. Я писал их быстрыми мазками. Работа — моё единственное развлечение.', ref:'Письмо 805, Тео, сентябрь 1889' },
+      { img:'27-self-portrait-bandaged.jpg', title:'Автопортрет', loc:'Музей Орсе, Париж', tech:'Холст, масло', desc:'Смотрю в зеркало и вижу незнакомца. Кто я? Пациент лечебницы? Просто смотрю и пишу. 1889.', a:1.24, letter:'У меня бывают приступы как у суеверного человека. Но я чувствую себя достаточно спокойным и уверенным чтобы продолжать работать.', ref:'Письмо 805, Тео, сентябрь 1889' },
+      { img:'28-wheatfield-cypresses.jpg', title:'Пшеница и кипарисы', loc:'Метрополитен-музей, Нью-Йорк', tech:'Холст, масло', desc:'Кипарисы выше всего. Как языки пламени. Они как я — тянутся вверх, к свету. Когда дует ветер, гнутся, но не ломаются. 1889.', a:0.76, letter:'Кипарисы поглощают мои мысли. Они прекрасны по форме и цвету как египетские обелиски. Никто ещё не написал их так как я их вижу.', ref:'Письмо 596, Тео, июнь 1889' },
+      { img:'29-olive-trees.jpg', title:'Оливковые деревья', loc:'Музей современного искусства, Нью-Йорк', tech:'Холст, масло', desc:'Шёпот оливковой рощи — что-то интимное, древнее. Они старше меня. Листья серебрятся на солнце. 1889.', a:1.27, letter:'Я сделал этюд оливковых деревьев серого цвета с серебристыми оттенками. На земле оранжевые и фиолетовые тона.', ref:'Письмо 604, Тео, июнь 1889' },
+      { img:'30-hill-montmajour.jpg', title:'Холм Монмажур', loc:'Частная коллекция', tech:'Холст, масло', desc:'Хочу уйти в горы и писать целыми днями. Там я ближе всего к небу. Руины стояли здесь сотни лет. 1889.', a:0.64, letter:'Хочу уйти в горы и писать целыми днями. Там я ближе всего к небу. Руины стояли здесь сотни лет.', ref:'Письмо 574, Тео, январь 1888' },
+      { img:'31-reaper.jpg', title:'Жнец', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Маленькая фигура в огромном поле. Он жнёт хлеб — я жну образы. Поле никогда не будет сжато полностью. Но мы продолжаем. 1889.', a:1.26, letter:'Я вижу в этом жнеце образ смерти. Но эта смерть не печальна — она происходит при ярком свете солнца.', ref:'Письмо 604, Тео, июнь 1889' },
+    ],
+    // Hall 6: Овер (6 картин)
+    [
+      { img:'32-wheatfield-crows.jpg', title:'Поле с воронами', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Это поле — как моя душа. Бескрайняя. Бурная. Одинокая. Дорога раздваивается и теряется среди колосьев. Как моя жизнь. 1890.', a:2.08, letter:'Написал три больших холста пшеницы под бурным небом. Я пытался выразить печаль, крайнее одиночество.', ref:'Письмо 898, Тео, 10 июля 1890' },
+      { img:'33-doctor-gachet.jpg', title:'Доктор Гаше', loc:'Музей Орсе, Париж', tech:'Холст, масло', desc:'Он сам немного художник. Грустное лицо — как у нас всех. Я написал его в синем на синем фоне. Грусть — тоже красота. 1890.', a:1.26, letter:'Я написал портрет доктора Гаше с грустным выражением лица. Он сказал что это похоже на него. Грусть тоже красота.', ref:'Письмо 879, Тео, июнь 1890' },
+      { img:'34-church-auvers.jpg', title:'Церковь в Овере', loc:'Музей Орсе, Париж', tech:'Холст, масло', desc:'Церковь стоит на холме. Я написал её фиолетовой на тёмно-синем небе. Одна дорога ведёт к церкви, другая — в поле. Я выбрал поле. 1890.', a:1.24, letter:'Здание кажется пурпурным на фоне неба цвета глубокого кобальта. Одна дорога к церкви, другая в поле.', ref:'Письмо 879, Тео, июнь 1890' },
+      { img:'35-undergrowth.jpg', title:'Лесная чаща', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Два человека идут по лесу. Свет пробивается сквозь листву. Этот лес я написал в один из последних хороших дней. Солнце светило. 1890.', a:1.49, letter:'Солнце светило в последний раз. Лес пахнет сыростью. Здесь легко дышится.', ref:'Письмо 898, Тео, 10 июля 1890' },
+      { img:'36-garden-daubigny.jpg', title:'Сад Добиньи', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Сад Добиньи — прощание. С цветами, с летом, с миром. Но я написал его радостно. Красота должна оставаться. 1890.', a:0.74, letter:'Сад Добиньи — картина, о которой я думал с тех пор, как здесь. Третий холст.', ref:'Письмо 898, Тео, 10 июля 1890' },
+      { img:'37-almond-blossom.jpg', title:'Цветущий миндаль', loc:'Музей Ван Гога, Амстердам', tech:'Холст, масло', desc:'Лучшее, что я сделал. Ветви на фоне голубого неба. Я подарил эту картину Тео — в честь рождения его сына. 1890.', a:0.77, letter:'Это лучшее что я сделал. Ветви миндаля на фоне голубого неба. Я подарил её Тео в честь рождения Винсента.', ref:'Письмо 890, Тео, февраль 1890' },
+    ],
+  ];
+  var WORKS = ALL_WORKS[0];
+
+  var R_ART = 8;
+  var R_CAM = 0.5;
+  var isPhone = innerWidth < 600;
+  var isTablet = innerWidth >= 600 && innerWidth < 1024;
+  var ART_Y = isPhone ? 1.6 : (isTablet ? 1.6 : 1.6);
+  var PAINT_SIZE = isPhone ? 1.7 : (isTablet ? 2.5 : 3.2);
+  var CAM_Y_START = isPhone ? 1.2 : (isTablet ? 1.0 : 1.0);
+  var CAM_Y = isPhone ? 1.6 : (isTablet ? 1.6 : 1.4);
+  var LOOK_Y = isPhone ? ART_Y : ART_Y;
+  var ANIM_SPEED = isPhone ? 0.6 : (isTablet ? 0.4 : 0.3);
+  var START = -Math.PI/2;
+  var STEP = (Math.PI*1.85) / WORKS.length;
+
+  // ---------- renderer / scene ----------
+  var app = document.getElementById('app');
+  var renderer = new T.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputEncoding = T.sRGBEncoding;
+  renderer.toneMapping = T.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  app.appendChild(renderer.domElement);
+
+  var scene = new T.Scene();
+  scene.fog = new T.FogExp2(0x000000, 0.005);
+  window._scene = scene; // debug
+  var camera = new T.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 100);
+
+  scene.add(new T.AmbientLight(0xffeedd, 0.12));
+
+  var room = new T.Mesh(
+    new T.BoxGeometry(40,16,40),
+    new T.MeshStandardMaterial({color:0x000000, roughness:1, metalness:0, side:T.BackSide})
+  );
+  room.position.y = 6;
+  window._room = room;
+  scene.add(room);
+
+  // ---------- load image → texture (works on file:// and http) ----------
+  function loadImgTex(src){
+    var tex = new T.Texture();
+    var img = new Image();
+    img.onload = function(){ tex.image = img; tex.needsUpdate = true; };
+    img.src = 'images/' + src;
+    tex.encoding = T.sRGBEncoding;
+    return tex;
+  }
+
+  // ---------- place paintings ----------
+  var viewpoints = [];
+  WORKS.forEach(function(w,i){
+    var a = START + i*STEP;
+    var px = Math.sin(a)*R_ART, pz = Math.cos(a)*R_ART;
+    var center = new T.Vector3(px, ART_Y, pz);
+
+    var art = new T.Mesh(
+      new T.PlaneGeometry(PAINT_SIZE*Math.min(w.a||1,1.5), PAINT_SIZE),
+      new T.MeshStandardMaterial({map:loadImgTex(w.img), roughness:0.65, metalness:0.0, side:T.DoubleSide})
+    );
+    art.position.copy(center);
+    var rot0 = Math.atan2(Math.sin(a)*R_CAM-px, Math.cos(a)*R_CAM-pz);
+    art.rotation.set(0, rot0, 0);
+    art.userData = {ry0: rot0, rx0: 0, rz0: 0};
+    scene.add(art);
+
+    var tgt = new T.Object3D();
+    tgt.position.copy(center);
+    scene.add(tgt);
+    var spot = new T.SpotLight(0xfff0d8, 3.2, 25, 0.7, 0.6, 2);
+    spot.position.set(px*0.55, ART_Y+2.6, pz*0.55);
+    spot.target = tgt;
+    scene.add(spot);
+
+    viewpoints.push({
+      camPos: new T.Vector3(Math.sin(a)*R_CAM, CAM_Y, Math.cos(a)*R_CAM),
+      lookAt: new T.Vector3(px, LOOK_Y, pz)
+    });
+  });
+
+  // ---------- dust ----------
+  var dustN = 380, dustGeo = new T.BufferGeometry(), dp = new Float32Array(dustN*3);
+  for(var i=0;i<dustN;i++){ dp[i*3]=(Math.random()-.5)*18; dp[i*3+1]=Math.random()*6; dp[i*3+2]=(Math.random()-.5)*18; }
+  dustGeo.setAttribute('position', new T.BufferAttribute(dp,3));
+  var dust = new T.Points(dustGeo, new T.PointsMaterial({color:0xfff0d8, size:0.02, transparent:true, opacity:0.5, depthWrite:false}));
+  scene.add(dust);
+
+  // ---------- camera ----------
+  var basePos = new T.Vector3(0, CAM_Y_START, 0);
+  var baseLook = viewpoints[0].lookAt.clone();
+  var fromPos=basePos.clone(), toPos=basePos.clone();
+  var fromLook=baseLook.clone(), toLook=baseLook.clone();
+  var tStart=0, dur=0, animating=false;
+  var easeInOut = function(t){ return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; };
+
+  var hallIdx = 0;
+  var HALLS = [
+    {name:'Голландия', years:'1880–1885', bg:0x1a120a, transition:'brush'},
+    {name:'Антверпен', years:'1885–1886', bg:0x1c1408, transition:'brush'},
+    {name:'Париж', years:'1886–1887', bg:0x0c0a1a, transition:'vgreveal'},
+    {name:'Арль', years:'1888–1889', bg:0x1e1406, transition:'reveal', revealImg:'portrait.jpg'},
+    {name:'Сен-Реми', years:'1889–1890', bg:0x12081a, transition:'reveal', revealImg:'4-bedroom.jpg'},
+    {name:'Овер', years:'1890', bg:0x081a0e, transition:'reveal', revealImg:'6-starry-night.jpg'},
+  ];
+  var index = 0;
+  var viewed = {}; // track viewed paintings
+  function checkNextHall(){
+    // для теста кнопка появляется сразу
+    document.getElementById('nextHall').classList.add('active');
+  }
+  function goTo(i, seconds, noFade){
+    i = Math.max(0, Math.min(WORKS.length-1, i));
+    index = i;
+    viewed[i] = true;
+    checkNextHall();
+    // recalc viewpoint for current hall
+    var a = START + i * (Math.PI*1.85) / WORKS.length;
+    var px = Math.sin(a)*R_ART, pz = Math.cos(a)*R_ART;
+    toPos.set(Math.sin(a)*R_CAM, CAM_Y, Math.cos(a)*R_CAM);
+    toLook.set(px, ART_Y, pz);
+    fromPos.copy(basePos); fromLook.copy(baseLook);
+    dur = seconds||1.6; tStart = performance.now()/1000; animating = true;
+    updateText(i, noFade);
+    document.getElementById('prev').disabled = (i===0);
+    document.getElementById('next').disabled = (i===WORKS.length-1);
+  }
+
+  // ---------- text ----------
+  var $ = function(id){return document.getElementById(id);};
+  $('total').textContent = String(WORKS.length).padStart(2,'0');
+  function updateText(i, noFade){
+    var w = WORKS[i];
+    $('cur').textContent = String(i+1).padStart(2,'0');
+    $('eyebrow').textContent = 'Зал · № '+String(i+1).padStart(2,'0');
+    var ti=$('title'), de=$('desc');
+    if(!noFade){ ti.style.opacity=0; de.style.opacity=0; }
+    setTimeout(function(){
+      ti.textContent=w.title;
+      de.innerHTML=w.desc+'<br><span style="font-size:10px;color:rgba(255,255,255,.3)">'+w.loc+' · '+w.tech+'</span>';
+      if(!noFade){ ti.style.opacity=1; de.style.opacity=1; }
+    },noFade?0:180);
+    if(w.letter){
+      if(!noFade){ $('letterQuote').style.opacity=0; $('letterRef').style.opacity=0; }
+      setTimeout(function(){
+        $('letterQuote').innerHTML='\xab'+w.letter+'\xbb';
+        $('letterRef').textContent=w.ref;
+        if(!noFade){ $('letterQuote').style.opacity=1; $('letterRef').style.opacity=1; }
+      },noFade?0:180);
+    }
+  }
+  $('next').onclick=function(){ goTo(index+1); };
+  $('prev').onclick=function(){ goTo(index-1); };
+  $('nextHall').onclick=function(){
+    if(!this.classList.contains('active')) return;
+    console.log('NEXT HALL CLICKED');
+    hallIdx = Math.min(hallIdx+1, HALLS.length-1);
+    WORKS = ALL_WORKS[hallIdx]; // switch to new hall paintings
+    // update hall intro text for later
+    var hh = HALLS[hallIdx];
+    document.querySelector('.hall-badge').textContent = 'ЗАЛ '+(hallIdx+1);
+    document.querySelector('.hall-title').textContent = hh.name;
+    document.querySelector('.hall-period').textContent = hh.years;
+    // update hall description
+    var descs = [
+      'Ван Гог начинает путь художника в 27 лет — без образования, без денег, без права на успех. Он живёт среди шахтёров и крестьян, пишет тёмными земляными тонами. Это время поиска: он ещё не нашёл свой цвет, но уже нашёл свой предмет — человека труда.',
+      'Переходный период. Ван Гог уезжает в Антверпен, поступает в Академию художеств. Открывает для себя японские гравюры. Палитра начинает светлеть.',
+      'Ван Гог переезжает к брату Тео в Париж. Знакомится с импрессионистами. Палитра взрывается цветом. Автопортреты, Монмартр, натюрморты.',
+      'Ван Гог уезжает на юг Франции в поисках солнца. Самый плодотворный период. Подсолнухи, спальня, звёздная ночь. Там же происходит срыв.',
+      'После срыва Ван Гог попадает в лечебницу Сен-Поль-де-Мозоль. Продолжает работать. Ирисы, кипарисы, оливки — природа становится его терапией.',
+      'Последние 70 дней жизни Ван Гога. 70 картин. Поля, церковь, портреты. И уход. Самый трагический и самый светлый период.',
+    ];
+    var hallDescEl = document.getElementById('hallDesc');
+    if(descs[hallIdx]) hallDescEl.textContent = descs[hallIdx];
+    // brush transition + paintings fly up (will start when hall intro appears)
+    // preload painting for reveal transitions
+    if(hh.transition === 'reveal' || hh.transition === 'vgreveal'){
+      if(window._vgImg && hh.transition !== 'vgreveal'){ window._vgImg = null; window._revealPixels = null; }
+      if(!window._vgImg){
+        window._vgImg = new Image();
+        window._vgImg.onload = function(){
+          var c = document.createElement('canvas');
+          c.width = this.naturalWidth; c.height = this.naturalHeight;
+          var ctx = c.getContext('2d');
+          ctx.drawImage(this, 0, 0);
+          window._vgPixels = ctx.getImageData(0, 0, c.width, c.height).data;
+        };
+        window._vgImg.src = hh.revealImg ? 'images/'+hh.revealImg : (hh.transition === 'reveal' ? 'images/30-hill-montmajour.jpg' : 'images/20-sunflowers.jpg');
+      }
+    }
+    var brushCanvas = document.createElement('canvas');
+    brushCanvas.style.cssText = 'position:fixed;inset:0;z-index:30;pointer-events:none;opacity:0;transition:opacity .8s';
+    brushCanvas.width = innerWidth;
+    brushCanvas.height = innerHeight;
+    var bx = brushCanvas.getContext('2d');
+    bx.fillStyle = (hh.transition === 'vgreveal' || hh.transition === 'reveal') ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)';
+    bx.fillRect(0, 0, innerWidth, innerHeight);
+    document.body.appendChild(brushCanvas);
+    requestAnimationFrame(function(){ brushCanvas.style.opacity = 1; });
+    var strokes = 0, maxStrokes = 200, strokeInterval = 3;
+    var isPetals = hh.transition === 'petals';
+    var isDots = hh.transition === 'dots';
+    var isFlowers = hh.transition === 'flowers';
+    var isVgReveal = hh.transition === 'vgreveal';
+    var isCafe = hh.transition === 'cafe';
+    var isReveal = hh.transition === 'reveal';
+    var dotColors = ['#3498db','#e74c3c','#f1c40f','#2ecc71','#9b59b6','#e67e22','#1abc9c','#e85d75','#f39c12'];
+    function drawStroke(){
+      if(isVgReveal){
+        // Build Van Gogh's Sunflowers layer by layer
+        var w = innerWidth, h = innerHeight;
+        var cx = w/2, cy = h/2;
+        function rC(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+        // palette from actual painting (dark, eye-friendly)
+        var bgCol = '#8a7a58';  // dark beige wall
+        var tblCol = '#8a7020'; // dark yellow table
+        var vaseLight = '#8a7a68'; // dark vase bottom
+        var vaseDark = '#7a6228'; // dark ochre vase top
+        var vgBrn = ['#4a2a12','#2e1a08','#5a3015'];
+        var vgGrn = ['#2a5012','#4a7020','#143a0a'];
+        var vgYel = ['#c8a020','#b89018','#d0b040','#a88008','#c8a838','#d8c050','#b89818'];
+        var vgOrg = ['#b86018','#c8701a','#a85010'];
+        var vgDrk = ['#1a1a0a','#2a1a0a','#3a2a0a'];
+
+        if(strokes < 50){
+          // Layer 1: background wall - short pale yellow strokes
+          for(var s=0;s<50;s++){
+            var sx = Math.random()*w;
+            var sy = Math.random()*h*0.85;
+            var sa = (Math.random()-0.5)*0.3; // slight angle
+            var sl = 15 + Math.random()*25;
+            bx.globalAlpha = 0.15 + Math.random()*0.2;
+            bx.strokeStyle = bgCol;
+            bx.lineWidth = 12 + Math.random()*20;
+            bx.lineCap = 'round';
+            bx.beginPath();
+            bx.moveTo(sx, sy);
+            bx.quadraticCurveTo(sx+Math.cos(sa)*sl*0.5+Math.random()*8, sy+Math.sin(sa)*sl*0.5+Math.random()*8, sx+Math.cos(sa)*sl, sy+Math.sin(sa)*sl);
+            bx.stroke();
+          }
+        } else if(strokes < 80){
+          // Layer 2: table - short yellow strokes, band at bottom
+          for(var s=0;s<50;s++){
+            var ty = h*0.68 + Math.random()*h*0.15;
+            var tx = Math.random()*w;
+            bx.globalAlpha = 0.3 + Math.random()*0.3;
+            bx.strokeStyle = tblCol;
+            bx.lineWidth = 8 + Math.random()*16;
+            bx.lineCap = 'round';
+            bx.beginPath();
+            bx.moveTo(tx, ty);
+            bx.quadraticCurveTo(tx+Math.random()*15, ty+Math.random()*8, tx+20+Math.random()*20, ty+(Math.random()-0.5)*6);
+            bx.stroke();
+          }
+        } else if(strokes < 110){
+          // Layer 3: vase and stems - short strokes
+          for(var s=0;s<50;s++){
+            if(Math.random() < 0.5){
+              // vase body - short curved strokes
+              var va = Math.random()*Math.PI*0.9 + Math.PI*0.05;
+              var vx = cx + Math.cos(va)*(20 + Math.random()*40);
+              var vy = h*0.45 + Math.sin(va)*40 + Math.random()*40;
+              var vl = 10 + Math.random()*20;
+              bx.globalAlpha = 0.3 + Math.random()*0.4;
+              bx.strokeStyle = vy > h*0.58 ? vaseLight : vaseDark;
+              bx.lineWidth = 5 + Math.random()*8;
+              bx.lineCap = 'round';
+              bx.beginPath();
+              bx.moveTo(vx, vy);
+              bx.quadraticCurveTo(vx+(Math.random()-0.5)*vl, vy+(Math.random()-0.5)*vl*0.5, vx+Math.cos(va+0.3)*vl, vy+Math.sin(va+0.3)*vl*0.5);
+              bx.stroke();
+            } else {
+              // stems - short green strokes going up
+              var baseY = h*0.42 + Math.random()*30;
+              var stemX = cx + (Math.random()-0.5)*25;
+              var stemLen = 15 + Math.random()*25;
+              bx.globalAlpha = 0.3 + Math.random()*0.4;
+              bx.strokeStyle = rC(vgGrn);
+              bx.lineWidth = 4 + Math.random()*5;
+              bx.lineCap = 'round';
+              bx.beginPath();
+              bx.moveTo(stemX, baseY);
+              bx.quadraticCurveTo(stemX+(Math.random()-0.5)*stemLen*0.3, baseY-stemLen*0.5, stemX+(Math.random()-0.5)*stemLen*0.5, baseY-stemLen);
+              bx.stroke();
+            }
+          }
+        } else {
+          // Layer 4: sunflower heads - the main 3-4 flowers
+          // Flower 1: large center flower
+          // Flower 2: left flower
+          // Flower 3: right flower
+          // Flower 4: top flower
+          var flowerPositions = [
+            {x: cx + (Math.random()-0.5)*10, y: h*0.25, size: 45},
+            {x: cx - 60 + (Math.random()-0.5)*20, y: h*0.2 + Math.random()*20, size: 35},
+            {x: cx + 65 + (Math.random()-0.5)*20, y: h*0.22 + Math.random()*20, size: 35},
+            {x: cx + (Math.random()-0.5)*40, y: h*0.08 + Math.random()*20, size: 28},
+            {x: cx - 30 + (Math.random()-0.5)*20, y: h*0.35 + Math.random()*15, size: 22},
+            {x: cx + 35 + (Math.random()-0.5)*20, y: h*0.32 + Math.random()*15, size: 22},
+            {x: cx - 80 + (Math.random()-0.5)*20, y: h*0.15 + Math.random()*15, size: 18},
+            {x: cx + 80 + (Math.random()-0.5)*20, y: h*0.12 + Math.random()*15, size: 18},
+          ];
+          for(var f=0;f<flowerPositions.length;f++){
+            if(Math.random() < 0.3) continue; // skip some each stroke
+            var fp = flowerPositions[f];
+            var fx = fp.x, fy = fp.y, fs = fp.size;
+            // dark center
+            bx.globalAlpha = 0.5 + Math.random()*0.4;
+            bx.fillStyle = rC(vgBrn);
+            bx.beginPath();
+            bx.arc(fx, fy, fs*0.28, 0, Math.PI*2);
+            bx.fill();
+            // yellow petals radiating from center
+            var pn = 10 + Math.floor(Math.random()*8);
+            for(var pf=0;pf<pn;pf++){
+              var pa = pf/pn * Math.PI*2 + (Math.random()-0.5)*0.3;
+              var pl = fs * (0.4 + Math.random()*0.4);
+              var pw = 5 + Math.random()*8;
+              var isOrange = Math.random() < 0.2;
+              bx.globalAlpha = 0.4 + Math.random()*0.5;
+              bx.strokeStyle = isOrange ? rC(vgOrg) : rC(vgYel);
+              bx.lineWidth = pw;
+              bx.lineCap = 'round';
+              bx.beginPath();
+              var pex = fx + Math.cos(pa)*(fs*0.2 + pl);
+              var pey = fy + Math.sin(pa)*(fs*0.2 + pl);
+              bx.moveTo(fx + Math.cos(pa)*fs*0.2, fy + Math.sin(pa)*fs*0.2);
+              bx.quadraticCurveTo(fx + Math.cos(pa-0.2)*(fs*0.2+pl*0.6), fy + Math.sin(pa-0.2)*(fs*0.2+pl*0.6), pex, pey);
+              bx.stroke();
+            }
+            // seed texture in center (dots)
+            for(var sd=0;sd<5;sd++){
+              bx.globalAlpha = 0.3 + Math.random()*0.4;
+              bx.fillStyle = rC(vgDrk);
+              bx.beginPath();
+              bx.arc(fx + (Math.random()-0.5)*fs*0.3, fy + (Math.random()-0.5)*fs*0.3, 2 + Math.random()*3, 0, Math.PI*2);
+              bx.fill();
+            }
+          }
+        }
+      } else if(isReveal){
+        // Reveal painting with brush strokes sampled from image
+        if(window._vgImg && window._vgImg.complete && window._vgImg.naturalWidth > 0){
+          // lazy-load pixel data for sampling
+          if(!window._revealPixels){
+            var tc = document.createElement('canvas');
+            tc.width = window._vgImg.naturalWidth; tc.height = window._vgImg.naturalHeight;
+            var tctx = tc.getContext('2d');
+            tctx.drawImage(window._vgImg, 0, 0);
+            window._revealPixels = tctx.getImageData(0, 0, tc.width, tc.height).data;
+          }
+          var iw = window._vgImg.naturalWidth, ih = window._vgImg.naturalHeight;
+          for(var s=0;s<90;s++){
+            // pick a random pixel from the image
+            var px = Math.floor(Math.random() * iw);
+            var py = Math.floor(Math.random() * ih);
+            var pi = (py * iw + px) * 4;
+            var r = window._revealPixels[pi], g = window._revealPixels[pi+1], b = window._revealPixels[pi+2];
+            // map image position to screen position
+            var dx = px / iw * innerWidth;
+            var dy = py / ih * innerHeight;
+            // draw a short thick brush stroke
+            var sl = 15 + Math.random()*30;
+            bx.globalAlpha = 0.3 + Math.random()*0.5;
+            bx.strokeStyle = 'rgb('+r+','+g+','+b+')';
+            bx.lineWidth = 6 + Math.random()*12;
+            bx.lineCap = 'round';
+            bx.beginPath();
+            bx.moveTo(dx, dy);
+            bx.quadraticCurveTo(dx+(Math.random()-0.5)*sl*0.5, dy+(Math.random()-0.5)*sl*0.5, dx+(Math.random()-0.5)*sl, dy+(Math.random()-0.5)*sl);
+            bx.stroke();
+          }
+        }
+      } else if(isFlowers){
+        // Van Gogh style flower - thick brush strokes
+        var fx = Math.random()*innerWidth;
+        var fy = Math.random()*innerHeight;
+        var fs = 30 + Math.random()*50; // flower size
+        var vgColor = dotColors[Math.floor(Math.random()*dotColors.length)];
+        // center blob (thick yellow paint)
+        bx.globalAlpha = 0.7;
+        bx.fillStyle = '#f1c40f';
+        for(var cb=0;cb<5;cb++){
+          bx.beginPath();
+          bx.arc(fx + (Math.random()-0.5)*fs*0.15, fy + (Math.random()-0.5)*fs*0.15, fs*0.08 + Math.random()*fs*0.06, 0, Math.PI*2);
+          bx.fill();
+        }
+        // petals - thick Van Gogh strokes radiating out
+        var petalN = 8 + Math.floor(Math.random()*6);
+        for(var pf=0;pf<petalN;pf++){
+          var a0 = pf/petalN * Math.PI*2;
+          var aOff = (Math.random()-0.5)*0.25;
+          var angle = a0 + aOff;
+          var len = fs * (0.35 + Math.random()*0.4);
+          var startR = fs * 0.12;
+          // thick brush stroke for each petal
+          bx.globalAlpha = 0.4 + Math.random()*0.5;
+          bx.strokeStyle = vgColor;
+          bx.lineWidth = 5 + Math.random()*10;
+          bx.lineCap = 'round';
+          bx.beginPath();
+          var sx = fx + Math.cos(angle)*startR;
+          var sy = fy + Math.sin(angle)*startR;
+          var ex = fx + Math.cos(angle)*(startR + len);
+          var ey = fy + Math.sin(angle)*(startR + len);
+          // slight curve for organic feel
+          var cpx = (sx+ex)/2 + (Math.random()-0.5)*fs*0.2;
+          var cpy = (sy+ey)/2 + (Math.random()-0.5)*fs*0.2;
+          bx.moveTo(sx, sy);
+          bx.quadraticCurveTo(cpx, cpy, ex, ey);
+          bx.stroke();
+        }
+      } else if(isDots){
+        // pointillism dots
+        for(var d=0;d<4;d++){
+          var dx = Math.random()*innerWidth;
+          var dy = Math.random()*innerHeight;
+          var dr = 3 + Math.random()*10;
+          bx.globalAlpha = 0.3 + Math.random()*0.5;
+          bx.fillStyle = dotColors[Math.floor(Math.random()*dotColors.length)];
+          bx.beginPath();
+          bx.arc(dx, dy, dr, 0, Math.PI*2);
+          bx.fill();
+        }
+      } else if(isPetals){
+        // add new petal at top
+        petals.push({
+          x: Math.random()*innerWidth,
+          y: -10 - Math.random()*50,
+          pw: 8 + Math.random()*18,
+          ph: 4 + Math.random()*10,
+          rot: Math.random()*Math.PI*2,
+          color: petalColors[Math.floor(Math.random()*petalColors.length)],
+          speed: 1 + Math.random()*3,
+          sway: (Math.random()-0.5)*0.5
+        });
+        // clear and redraw all petals slightly lower
+        bx.clearRect(0, 0, innerWidth, innerHeight);
+        for(var p=0;p<petals.length;p++){
+          var pt = petals[p];
+          pt.y += pt.speed;
+          pt.x += pt.sway;
+          bx.save();
+          bx.translate(pt.x, pt.y);
+          bx.rotate(pt.rot + strokes*0.001);
+          bx.globalAlpha = Math.max(0, 0.1 + 0.6 * (1 - pt.y/(innerHeight+100)));
+          bx.fillStyle = pt.color;
+          bx.beginPath();
+          bx.ellipse(0, 0, pt.pw/2, pt.ph/2, 0, 0, Math.PI*2);
+          bx.fill();
+          bx.restore();
+        }
+        // remove petals that fell off screen
+        petals = petals.filter(function(p){return p.y < innerHeight + 50;});
+      } else {
+        // brush stroke (original)
+        var x = Math.random()*innerWidth, y = Math.random()*innerHeight;
+        bx.globalAlpha = 0.2 + Math.random()*0.35;
+        bx.strokeStyle = '#2a1a0a';
+        bx.lineWidth = 15 + Math.random()*55;
+        bx.lineCap = 'round';
+        bx.beginPath();
+        bx.moveTo(x, y);
+        var cpx = x + (Math.random()-0.5)*300, cpy = y + (Math.random()-0.5)*300;
+        bx.quadraticCurveTo(cpx, cpy, x + (Math.random()-0.5)*200, y + (Math.random()-0.5)*200);
+        bx.stroke();
+      }
+      // at later strokes (~2s), show hall intro, start fly-away behind it
+      if(strokes === 130){
+        document.getElementById('hallIntro').style.transition = 'opacity 2s ease';
+        document.getElementById('hallIntro').style.zIndex = 31;
+        document.getElementById('hallIntro').classList.add('show');
+        document.getElementById('enterHall').style.display='';
+        document.getElementById('hallDesc').style.display='';
+        window.flyingAway = true;
+        // disable CSS transitions, start fly-up
+        var irEl = document.getElementById('infoRight');
+        var llEl = document.getElementById('letterLeft');
+        if(irEl) irEl.style.transition = 'none';
+        if(llEl) llEl.style.transition = 'none';
+        document.getElementById('hud').classList.remove('show');
+        // save old meshes before creating new ones (for cleanup later)
+        var oldMeshes = scene.children.filter(function(c){return c.type==='Mesh'&&c.material&&c.material.map;});
+        window._oldMeshes = oldMeshes;
+        // create new hall paintings below, they rise simultaneously
+        var newMeshes = [];
+        var hallStep = (Math.PI*1.85) / WORKS.length;
+        // remove old spotlights and targets
+        var oldLights = scene.children.filter(function(c){return c.type==='SpotLight'||c.type==='Object3D';});
+        oldLights.forEach(function(c){scene.remove(c);});
+        WORKS.forEach(function(w,i){
+          var a = START + i*hallStep;
+          var px = Math.sin(a)*R_ART, pz = Math.cos(a)*R_ART;
+          var art = new T.Mesh(
+            new T.PlaneGeometry(PAINT_SIZE*Math.min(w.a||1,1.5), PAINT_SIZE),
+            new T.MeshStandardMaterial({map:loadImgTex(w.img), roughness:0.65, metalness:0.0, side:T.DoubleSide, transparent:true, opacity:0})
+          );
+          art.position.set(px, ART_Y - 10, pz);
+          var rot0 = Math.atan2(Math.sin(a)*R_CAM-px, Math.cos(a)*R_CAM-pz);
+          art.rotation.set(0, rot0, 0);
+          art.userData = {ry0: rot0, rx0: 0, rz0: 0, isNew: true};
+          scene.add(art);
+          // new spotlight for this painting
+          var tgt = new T.Object3D();
+          tgt.position.set(px, ART_Y, pz);
+          scene.add(tgt);
+          var spot = new T.SpotLight(0xfff0d8, 3.2, 25, 0.7, 0.6, 2);
+          spot.position.set(px*0.55, ART_Y+2.6, pz*0.55);
+          spot.target = tgt;
+          scene.add(spot);
+          newMeshes.push(art);
+        });
+        // text starts below for rise - update content for new hall
+        var myIr = document.getElementById('infoRight');
+        var myLl = document.getElementById('letterLeft');
+        // update text content to new hall's first painting (same format as updateText)
+        if(WORKS[0]){
+          var w0 = WORKS[0];
+          document.querySelector('.info-right .eyebrow').textContent = 'Зал · № 01';
+          document.querySelector('#infoRight .title').textContent = w0.title;
+          document.querySelector('#infoRight .desc').innerHTML = w0.desc+'<br><span style="font-size:10px;color:rgba(255,255,255,.3)">'+w0.loc+' · '+w0.tech+'</span>';
+          document.querySelector('#letterQuote').innerHTML = '\xab'+w0.letter+'\xbb';
+          document.querySelector('#letterRef').textContent = w0.ref;
+          document.getElementById('total').textContent = String(WORKS.length).padStart(2,'0');
+          document.getElementById('cur').textContent = '01';
+        }
+        if(myIr){ myIr.style.marginTop = '500px'; myIr.style.opacity = 0; myIr.style.transform = ''; }
+        if(myLl){ myLl.style.marginTop = '500px'; myLl.style.opacity = 0; myLl.style.transform = ''; }
+        // rise animation for new hall — flag only, animate() handles it
+        window._riseStart = performance.now();
+        window._riseNew = newMeshes;
+        window._riseIr = myIr;
+        window._riseLl = myLl;
+        // change room color behind the scenes
+        setTimeout(function(){
+          var hh3 = HALLS[hallIdx];
+          if(room && room.material){
+            room.material.color.setHex(hh3.bg);
+            scene.fog.color.setHex(hh3.bg);
+          }
+          // after fly-away done, remove old meshes
+          if(window._oldMeshes){
+            window._oldMeshes.forEach(function(m){ scene.remove(m); });
+            window._oldMeshes = null;
+          }
+        }, 3000);
+      }
+      strokes++;
+      if(strokes < maxStrokes) setTimeout(drawStroke, strokeInterval);
+      else {
+        brushCanvas.style.transition = 'opacity .3s';
+        brushCanvas.style.opacity = 0;
+        setTimeout(function(){
+          brushCanvas.remove();
+          document.getElementById('hallIntro').style.zIndex = 12;
+        }, 500);
+      }
+      }
+    drawStroke();
+  };
+
+  // ---------- entrance ----------
+  var _intro=0;
+  function _type(el,t,s){el.textContent='';var i=0;function n(){if(i<t.length){el.textContent+=t[i];i++;setTimeout(n,s);}}n();}
+  document.getElementById('enter').onclick=function(){
+    var b=this;
+    if(!_intro){
+      _intro=1;b.style.pointerEvents='none';b.classList.add('listening');
+      _type(b,'Слушаем...',80);
+      setTimeout(function(){
+        b.style.pointerEvents='';b.classList.remove('listening');b.classList.add('done');
+        _type(b,'Войти в галерею',60);
+      },1000);
+    }else{
+      // show hall intro behind curtain first, then open
+      document.getElementById('hallIntro').classList.add('show');
+      document.getElementById('enterHall').style.display='';
+      document.getElementById('hallDesc').style.display='';
+      setTimeout(function(){ document.getElementById('gate').classList.add('open'); }, 100);
+    }
+  };
+  document.getElementById('enterHall').onclick=function(){
+    this.style.display='none';
+    document.getElementById('hallDesc').style.display='none';
+    document.getElementById('hallIntro').classList.remove('show');
+    document.getElementById('hud').classList.add('show');
+    document.getElementById('infoRight').classList.add('show');
+    document.getElementById('infoRight').style.opacity = '';
+    document.getElementById('infoRight').style.transform = '';
+    document.getElementById('letterLeft').classList.add('show');
+    document.getElementById('letterLeft').style.opacity = '';
+    document.getElementById('letterLeft').style.transform = '';
+    goTo(0, ANIM_SPEED, true);
+    // play hall entrance letter audio
+    var audioPath = 'audio/hall'+(hallIdx+1)+'-letter.mp3';
+    fetch(audioPath, {method:'HEAD'}).then(function(r){
+      if(r.ok){
+        var la=new Audio(audioPath);
+        la.play();
+        window.letterPlaying=true;
+        la.addEventListener('ended',function(){window.letterPlaying=false;checkNextHall();});
+      } else {
+        window.letterPlaying=false;
+        checkNextHall();
+      }
+    }).catch(function(){window.letterPlaying=false;checkNextHall();});
+  };
+
+  // ---------- drag rotate (mouse + touch) ----------
+  var drag=false, dragStartX=0, dragStartY=0;
+  document.addEventListener('mousedown',function(e){
+    drag=true; dragStartX=e.clientX; dragStartY=e.clientY;
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!drag||index<0||animating) return;
+    var dx=(e.clientX-dragStartX)*0.005, dy=(e.clientY-dragStartY)*0.005;
+    var groups=scene.children.filter(function(c){return c.type==='Mesh'&&c.material&&c.material.map;});
+    if(groups.length&&groups[index]){groups[index].rotation.y+=dx;groups[index].rotation.x+=dy;}
+    dragStartX=e.clientX; dragStartY=e.clientY;
+  });
+  document.addEventListener('mouseup',function(){
+    endDrag();
+  });
+  // touch events for mobile
+  document.addEventListener('touchstart',function(e){
+    drag=true; dragStartX=e.touches[0].clientX; dragStartY=e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!drag||index<0||animating) return;
+    var dx=(e.touches[0].clientX-dragStartX)*0.005, dy=(e.touches[0].clientY-dragStartY)*0.005;
+    var groups=scene.children.filter(function(c){return c.type==='Mesh'&&c.material&&c.material.map;});
+    if(groups.length&&groups[index]){groups[index].rotation.y+=dx;groups[index].rotation.x+=dy;}
+    dragStartX=e.touches[0].clientX; dragStartY=e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchend',function(){
+    endDrag();
+  },{passive:true});
+  function endDrag(){
+    drag=false;
+    if(index<0) return;
+    var groups=scene.children.filter(function(c){return c.type==='Mesh'&&c.material&&c.material.map;});
+    if(groups.length&&groups[index]&&groups[index].userData){
+      var g=groups[index], t0=performance.now();
+      var sx=g.rotation.x, sy=g.rotation.y, sz=g.rotation.z;
+      var rx0=g.userData.rx0||0, ry0=g.userData.ry0||0, rz0=g.userData.rz0||0;
+      function snapBack(){
+        var e=Math.min(1,(performance.now()-t0)/400);
+        var ease=1-Math.pow(1-e,3);
+        g.rotation.x=rx0+(sx-rx0)*(1-ease);
+        g.rotation.y=ry0+(sy-ry0)*(1-ease);
+        g.rotation.z=rz0+(sz-rz0)*(1-ease);
+        if(e<1) requestAnimationFrame(snapBack);
+      }
+      snapBack();
+    }
+  }
+
+  // ---------- loop ----------
+  var tmpPos=new T.Vector3(), tmpLook=new T.Vector3();
+  function animate(){
+    requestAnimationFrame(animate);
+    var now = performance.now()/1000;
+
+    if(animating){
+      var e = easeInOut(Math.min(1,(now-tStart)/dur));
+      basePos.lerpVectors(fromPos,toPos,e);
+      baseLook.lerpVectors(fromLook,toLook,e);
+      if(e>=1) animating=false;
+    }
+
+    tmpPos.copy(basePos);
+    tmpLook.copy(baseLook);
+    camera.position.copy(tmpPos); camera.lookAt(tmpLook);
+
+    // paintings + text fly up on next hall
+    if(window.flyingAway){
+      var meshes = scene.children.filter(function(c){return c.type==='Mesh'&&c.material&&c.material.map;});
+      meshes.forEach(function(m){
+        m.position.y += 0.08;
+        m.material.transparent = true;
+        m.material.opacity = Math.max(0, (m.material.opacity||1) - 0.015);
+      });
+      // text flies up too (only if no rise active)
+      if(!window._riseStart){
+      var ir = document.getElementById('infoRight');
+      var ll = document.getElementById('letterLeft');
+      if(ir && ll){
+        var t = parseFloat(ir.dataset.flyY||0) + 15;
+        ir.dataset.flyY = t;
+        ll.dataset.flyY = t;
+        ir.style.transform = 'translateY(-'+t+'px)';
+        ll.style.transform = 'translateY(-'+t+'px)';
+        ir.style.opacity = Math.max(0, 1 - t/1000);
+        ll.style.opacity = Math.max(0, 1 - t/1000);
+      }
+      }
+    }
+    // rise animation for new hall (overrides fly-away on new meshes)
+    if(window._riseIr && window._riseLl && window._riseStart && window._riseNew){
+      var re = Math.min(1, (performance.now()-window._riseStart)/3000);
+      var rease = 1-Math.pow(1-re,3);
+      window._riseNew.forEach(function(m){
+        m.position.y = (ART_Y - 10) + 10 * rease;
+        m.material.opacity = Math.min(1, re * 3);
+      });
+      if(window._riseIr && window._riseLl){
+        var off = Math.max(0, 500*(1-rease));
+        window._riseIr.style.marginTop = off + 'px';
+        window._riseLl.style.marginTop = off + 'px';
+        window._riseIr.style.opacity = Math.min(0.8, rease * 2.2);
+        window._riseLl.style.opacity = Math.min(0.8, rease * 2.2);
+      }
+      if(re >= 1){
+        window._riseNew.forEach(function(m){ m.material.transparent = false; });
+        window.flyingAway = false;
+        if(window._riseIr){ window._riseIr.classList.add('show'); }
+        if(window._riseLl){ window._riseLl.classList.add('show'); }
+        window._riseStart = null;
+        window._riseNew = null;
+        window._riseIr = null;
+        window._riseLl = null;
+      }
+    }
+
+    var pos = dust.geometry.attributes.position.array;
+    for(var i=0;i<dustN;i++){ pos[i*3+1]+=0.0025; if(pos[i*3+1]>6) pos[i*3+1]=0; }
+    dust.geometry.attributes.position.needsUpdate=true;
+
+    renderer.render(scene,camera);
+  }
+  animate();
+  updateText(0);
+
+  addEventListener('resize',function(){
+    camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+})();
+</script>
+</body>
+</html>
